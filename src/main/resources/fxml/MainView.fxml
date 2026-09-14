@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.prerequix.ui.MainController"
+            prefWidth="1280.0" prefHeight="800.0"
+            stylesheets="@../css/style.css">
+
+    <!-- Top Header Bar -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="16.0" styleClass="header-bar">
+            <padding>
+                <Insets top="12.0" right="20.0" bottom="12.0" left="20.0"/>
+            </padding>
+            <VBox spacing="2.0">
+                <Label text="🎓 PreRequix" styleClass="app-title"/>
+                <Label text="Course Prerequisite Planner" styleClass="muted-text"/>
+            </VBox>
+            <Separator orientation="VERTICAL"/>
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                <VBox styleClass="stat-box">
+                    <Label text="TOTAL COURSES" styleClass="stat-label"/>
+                    <Label fx:id="totalCoursesVal" text="0" styleClass="stat-value"/>
+                </VBox>
+                <VBox styleClass="stat-box">
+                    <Label text="COMPLETED" styleClass="stat-label"/>
+                    <Label fx:id="completedVal" text="0" styleClass="stat-value"/>
+                </VBox>
+                <VBox styleClass="stat-box">
+                    <Label text="AVAILABLE NOW" styleClass="stat-label"/>
+                    <Label fx:id="availableVal" text="0" styleClass="stat-value"/>
+                </VBox>
+                <VBox styleClass="stat-box">
+                    <Label text="TOTAL CREDITS" styleClass="stat-label"/>
+                    <Label fx:id="totalCreditsVal" text="0" styleClass="stat-value"/>
+                </VBox>
+            </HBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <HBox alignment="CENTER_RIGHT" spacing="8.0">
+                <ComboBox fx:id="presetCombo" promptText="Sample Curricula" styleClass="btn-secondary"/>
+                <Button fx:id="themeBtn" text="🌙 Dark" styleClass="btn-secondary"/>
+                <Button fx:id="addCourseBtn" text="➕ New Course" styleClass="btn-primary"/>
+            </HBox>
+        </HBox>
+    </top>
+
+    <!-- Left Navigation Sidebar -->
+    <left>
+        <VBox prefWidth="200.0" spacing="10.0" styleClass="sidebar">
+            <padding>
+                <Insets top="16.0" right="12.0" bottom="16.0" left="12.0"/>
+            </padding>
+            <Button fx:id="graphNavBtn" text="🕸️ Graph Network" styleClass="sidebar-btn, sidebar-btn-active" maxWidth="Infinity"/>
+            <Button fx:id="catalogNavBtn" text="📚 Course Catalog" styleClass="sidebar-btn" maxWidth="Infinity"/>
+            <Button fx:id="sequenceNavBtn" text="🗓️ Sequence Planner" styleClass="sidebar-btn" maxWidth="Infinity"/>
+        </VBox>
+    </left>
+
+    <!-- Center View Area -->
+    <center>
+        <VBox spacing="10.0">
+            <StackPane fx:id="centerContentStack" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </center>
+
+</BorderPane>

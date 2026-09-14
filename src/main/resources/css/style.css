@@ -1,0 +1,283 @@
+/* PreRequix - Minimal & Modern JavaFX Theme */
+
+.root {
+    -fx-font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Roboto", sans-serif;
+    -fx-font-size: 13px;
+
+    /* Light Theme Palette Defaults */
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff;
+    --bg-header: #ffffff;
+
+    --border-color: #e2e8f0;
+    --border-light: #f1f5f9;
+
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --primary-bg: #eff6ff;
+
+    --status-completed: #10b981;
+    --status-completed-bg: #ecfdf5;
+
+    --status-in-progress: #f59e0b;
+    --status-in-progress-bg: #fffbeb;
+
+    --status-uncompleted: #64748b;
+    --status-uncompleted-bg: #f8fafc;
+
+    --danger: #ef4444;
+    --danger-bg: #fef2f2;
+
+    -fx-background-color: var(--bg-main);
+}
+
+.dark-theme {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --bg-sidebar: #1e293b;
+    --bg-header: #1e293b;
+
+    --border-color: #334155;
+    --border-light: #1e293b;
+
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+
+    --primary: #60a5fa;
+    --primary-hover: #3b82f6;
+    --primary-bg: #1e3a8a;
+
+    --status-completed: #34d399;
+    --status-completed-bg: #064e3b;
+
+    --status-in-progress: #fbbf24;
+    --status-in-progress-bg: #78350f;
+
+    --status-uncompleted: #94a3b8;
+    --status-uncompleted-bg: #1e293b;
+
+    --danger: #f87171;
+    --danger-bg: #7f1d1d;
+
+    -fx-background-color: var(--bg-main);
+}
+
+/* Header & Sidebar */
+.header-bar {
+    -fx-background-color: var(--bg-header);
+    -fx-border-color: transparent transparent var(--border-color) transparent;
+    -fx-border-width: 1px;
+    -fx-padding: 12px 20px;
+}
+
+.sidebar {
+    -fx-background-color: var(--bg-sidebar);
+    -fx-border-color: transparent var(--border-color) transparent transparent;
+    -fx-border-width: 1px;
+    -fx-padding: 16px 12px;
+}
+
+.sidebar-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: var(--text-muted);
+    -fx-font-weight: 500;
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10px 14px;
+    -fx-background-radius: 8px;
+    -fx-cursor: hand;
+}
+
+.sidebar-btn:hover {
+    -fx-background-color: var(--primary-bg);
+    -fx-text-fill: var(--primary);
+}
+
+.sidebar-btn-active {
+    -fx-background-color: var(--primary);
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 600;
+}
+
+.sidebar-btn-active:hover {
+    -fx-background-color: var(--primary-hover);
+    -fx-text-fill: #ffffff;
+}
+
+/* Cards & Containers */
+.card-panel {
+    -fx-background-color: var(--bg-card);
+    -fx-border-color: var(--border-color);
+    -fx-border-width: 1px;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-padding: 16px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.03), 8, 0, 0, 2);
+}
+
+.app-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+    -fx-text-fill: var(--text-main);
+}
+
+.section-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-text-fill: var(--text-main);
+}
+
+.muted-text {
+    -fx-font-size: 12px;
+    -fx-text-fill: var(--text-muted);
+}
+
+/* Stats Pill Badges */
+.stat-box {
+    -fx-background-color: var(--bg-card);
+    -fx-border-color: var(--border-color);
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 6px 14px;
+}
+
+.stat-label {
+    -fx-font-size: 10px;
+    -fx-text-fill: var(--text-muted);
+    -fx-font-weight: 600;
+}
+
+.stat-value {
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+    -fx-text-fill: var(--text-main);
+}
+
+/* Buttons */
+.btn-primary {
+    -fx-background-color: var(--primary);
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 600;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+}
+
+.btn-primary:hover {
+    -fx-background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+    -fx-background-color: transparent;
+    -fx-border-color: var(--border-color);
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-text-fill: var(--text-main);
+    -fx-padding: 7px 14px;
+    -fx-cursor: hand;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: var(--primary-bg);
+}
+
+.btn-danger {
+    -fx-background-color: var(--danger-bg);
+    -fx-text-fill: var(--danger);
+    -fx-border-color: var(--danger);
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 7px 14px;
+    -fx-cursor: hand;
+}
+
+/* Search Box */
+.search-field {
+    -fx-background-color: var(--bg-card);
+    -fx-border-color: var(--border-color);
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 6px 12px;
+    -fx-text-fill: var(--text-main);
+}
+
+.search-field:focused {
+    -fx-border-color: var(--primary);
+}
+
+/* Status Pill Indicators */
+.status-pill {
+    -fx-padding: 3px 10px;
+    -fx-background-radius: 12px;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+}
+
+.status-completed {
+    -fx-background-color: var(--status-completed-bg);
+    -fx-text-fill: var(--status-completed);
+}
+
+.status-in-progress {
+    -fx-background-color: var(--status-in-progress-bg);
+    -fx-text-fill: var(--status-in-progress);
+}
+
+.status-uncompleted {
+    -fx-background-color: var(--status-uncompleted-bg);
+    -fx-text-fill: var(--status-uncompleted);
+}
+
+/* Tables & Lists */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: var(--border-color);
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: var(--bg-card);
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent var(--border-color) transparent;
+    -fx-padding: 10px;
+}
+
+.table-row-cell {
+    -fx-background-color: var(--bg-card);
+    -fx-border-color: transparent transparent var(--border-light) transparent;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: var(--primary-bg);
+}
+
+/* Conflict Banner */
+.conflict-banner {
+    -fx-background-color: var(--danger-bg);
+    -fx-border-color: var(--danger);
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 12px 16px;
+}
+
+.conflict-text {
+    -fx-text-fill: var(--danger);
+    -fx-font-weight: 600;
+    -fx-font-size: 12px;
+}

@@ -1,0 +1,21 @@
+# Maven build outputs
+target/
+
+# Portable Maven tools (too large to commit)
+.tools/
+
+# IDE-specific files
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Jackson local storage (runtime user data)
+*.prerequix/
