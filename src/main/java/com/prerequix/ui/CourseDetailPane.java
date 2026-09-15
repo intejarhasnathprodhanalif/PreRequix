@@ -1,4 +1,4 @@
-package com.prerequix.ui;
+﻿package com.prerequix.ui;
 
 import com.prerequix.model.Course;
 import com.prerequix.model.CourseGraph;
@@ -134,7 +134,7 @@ public class CourseDetailPane extends VBox {
 
     private VBox createSection(String title, VBox box) {
         Label lbl = new Label(title);
-        lbl.setStyle("-fx-font-weight: 600; -fx-font-size: 12px; -fx-text-fill: var(--text-main);");
+        lbl.setStyle("-fx-font-weight: 600; -fx-font-size: 12px; -fx-text-fill: #0f172a;");
         VBox sec = new VBox(6, lbl, box);
         return sec;
     }
@@ -216,7 +216,7 @@ public class CourseDetailPane extends VBox {
         HBox.setHgrow(item.getChildren().get(2), Priority.ALWAYS);
         item.setAlignment(Pos.CENTER_LEFT);
         item.setPadding(new Insets(4, 8, 4, 8));
-        item.setStyle("-fx-background-color: var(--border-light); -fx-background-radius: 6px; -fx-cursor: hand;");
+        item.setStyle("-fx-background-color: #f1f5f9; -fx-background-radius: 6px; -fx-cursor: hand;");
 
         item.setOnMouseClicked(e -> {
             if (onCourseSelectedListener != null) {
@@ -258,3 +258,4 @@ public class CourseDetailPane extends VBox {
         dependentsBox.getChildren().clear();
     }
 }
+

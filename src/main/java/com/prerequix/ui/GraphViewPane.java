@@ -1,4 +1,4 @@
-package com.prerequix.ui;
+﻿package com.prerequix.ui;
 
 import com.prerequix.model.Course;
 import com.prerequix.model.CourseGraph;
@@ -52,7 +52,7 @@ public class GraphViewPane extends BorderPane {
         graphGroup = new Group();
         graphCanvas = new Pane(graphGroup);
         graphCanvas.setPrefSize(2000, 1500);
-        graphCanvas.setStyle("-fx-background-color: var(--bg-main);");
+        graphCanvas.setStyle("-fx-background-color: #f8fafc;");
 
         ScrollPane scrollPane = new ScrollPane(graphCanvas);
         scrollPane.setFitToWidth(false);
@@ -77,7 +77,7 @@ public class GraphViewPane extends BorderPane {
 
     private HBox createControlsToolbar() {
         Label title = new Label("🕸️ Prerequisite Network Graph");
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: var(--text-main);");
+        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #0f172a;");
 
         Label subtitle = new Label("Click node to highlight prerequisite path • Drag nodes to reposition");
         subtitle.getStyleClass().add("muted-text");
@@ -145,7 +145,7 @@ public class GraphViewPane extends BorderPane {
         Collection<Course> courses = graph.getAllCourses();
         if (courses.isEmpty()) {
             Label emptyLbl = new Label("No courses added yet. Click '+ Add Course' to start!");
-            emptyLbl.setStyle("-fx-font-size: 14px; -fx-text-fill: var(--text-muted);");
+            emptyLbl.setStyle("-fx-font-size: 14px; -fx-text-fill: #64748b;");
             emptyLbl.setLayoutX(100);
             emptyLbl.setLayoutY(100);
             graphGroup.getChildren().add(emptyLbl);
@@ -302,7 +302,7 @@ public class GraphViewPane extends BorderPane {
             statusDot.setStyle("-fx-font-size: 12px;");
 
             Label codeLbl = new Label(course.getCode());
-            codeLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: var(--text-main);");
+            codeLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #0f172a;");
 
             Label creditsLbl = new Label(course.getCredits() + " cr");
             creditsLbl.getStyleClass().add("muted-text");
@@ -312,7 +312,7 @@ public class GraphViewPane extends BorderPane {
             header.setAlignment(Pos.CENTER_LEFT);
 
             Label titleLbl = new Label(course.getTitle());
-            titleLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: var(--text-muted);");
+            titleLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
             titleLbl.setWrapText(false);
 
             getChildren().addAll(header, titleLbl);
@@ -346,11 +346,11 @@ public class GraphViewPane extends BorderPane {
                     break;
                 case DIMMED:
                     setOpacity(0.35);
-                    setStyle("-fx-border-color: var(--border-color); -fx-border-width: 1px; -fx-border-radius: 8px; -fx-background-radius: 8px;");
+                    setStyle("-fx-border-color: #e2e8f0; -fx-border-width: 1px; -fx-border-radius: 8px; -fx-background-radius: 8px;");
                     break;
                 case NORMAL:
                 default:
-                    setStyle("-fx-border-color: var(--border-color); -fx-border-width: 1px; -fx-border-radius: 8px; -fx-background-radius: 8px;");
+                    setStyle("-fx-border-color: #e2e8f0; -fx-border-width: 1px; -fx-border-radius: 8px; -fx-background-radius: 8px;");
                     break;
             }
         }
@@ -434,3 +434,4 @@ public class GraphViewPane extends BorderPane {
         }
     }
 }
+

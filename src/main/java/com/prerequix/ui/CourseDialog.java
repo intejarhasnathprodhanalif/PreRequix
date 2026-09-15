@@ -1,4 +1,4 @@
-package com.prerequix.ui;
+﻿package com.prerequix.ui;
 
 import com.prerequix.model.Course;
 import com.prerequix.model.CourseGraph;
@@ -113,7 +113,7 @@ public class CourseDialog extends Stage {
 
         warningLabel = new Label();
         warningLabel.setWrapText(true);
-        warningLabel.setStyle("-fx-text-fill: var(--danger); -fx-font-weight: bold; -fx-font-size: 12px;");
+        warningLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold; -fx-font-size: 12px;");
 
         // Action Buttons
         Button saveBtn = new Button(existingCourse == null ? "Create Course" : "Save Changes");
@@ -200,3 +200,4 @@ public class CourseDialog extends Stage {
         return saved;
     }
 }
+

@@ -1,4 +1,4 @@
-package com.prerequix.ui;
+﻿package com.prerequix.ui;
 
 import com.prerequix.model.Course;
 import com.prerequix.model.CourseGraph;
@@ -42,7 +42,7 @@ public class SequencePlannerPane extends BorderPane {
         topHeader.setPadding(new Insets(14, 18, 14, 18));
 
         Label title = new Label("🗓️ Valid Course-Taking Sequence Planner");
-        title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: var(--text-main);");
+        title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #0f172a;");
 
         Label subtitle = new Label("Calculates topological course order and distributes remaining courses into terms based on credit limits.");
         subtitle.getStyleClass().add("muted-text");
@@ -60,7 +60,7 @@ public class SequencePlannerPane extends BorderPane {
         creditSlider.setPrefWidth(220);
 
         creditValLabel = new Label("15.0 cr / term");
-        creditValLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: var(--primary);");
+        creditValLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #3b82f6;");
 
         creditSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
             creditValLabel.setText(String.format("%.1f cr / term", newVal.doubleValue()));
@@ -71,7 +71,7 @@ public class SequencePlannerPane extends BorderPane {
         sliderBox.setAlignment(Pos.CENTER_LEFT);
 
         summaryStatsLabel = new Label();
-        summaryStatsLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: var(--text-main);");
+        summaryStatsLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #0f172a;");
 
         Button exportBtn = new Button("📥 Export Schedule Report");
         exportBtn.getStyleClass().add("btn-secondary");
@@ -106,7 +106,7 @@ public class SequencePlannerPane extends BorderPane {
 
             if (schedule.isEmpty()) {
                 Label empty = new Label("🎉 All courses in your curriculum are completed!");
-                empty.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: var(--status-completed);");
+                empty.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #10b981;");
                 termsContainer.getChildren().add(empty);
                 summaryStatsLabel.setText("0 Remaining Terms Required");
                 return;
@@ -144,10 +144,10 @@ public class SequencePlannerPane extends BorderPane {
         card.setPrefWidth(280);
 
         Label termHeader = new Label("Semester / Term " + plan.getTermNumber());
-        termHeader.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: var(--primary);");
+        termHeader.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #3b82f6;");
 
         Label creditBadge = new Label(String.format("%.1f / %.1f Credits", plan.getTotalCredits(), maxCredits));
-        creditBadge.setStyle("-fx-font-size: 11px; -fx-font-weight: 600; -fx-text-fill: var(--text-muted);");
+        creditBadge.setStyle("-fx-font-size: 11px; -fx-font-weight: 600; -fx-text-fill: #64748b;");
 
         HBox top = new HBox(10, termHeader, new Region(), creditBadge);
         HBox.setHgrow(top.getChildren().get(1), Priority.ALWAYS);
@@ -155,20 +155,20 @@ public class SequencePlannerPane extends BorderPane {
 
         ProgressBar progress = new ProgressBar(plan.getTotalCredits() / maxCredits);
         progress.setPrefWidth(260);
-        progress.setStyle("-fx-accent: var(--primary);");
+        progress.setStyle("-fx-accent: #3b82f6;");
 
         VBox coursesList = new VBox(6);
         for (Course c : plan.getCourses()) {
             HBox courseItem = new HBox(8);
             courseItem.setAlignment(Pos.CENTER_LEFT);
             courseItem.setPadding(new Insets(6, 8, 6, 8));
-            courseItem.setStyle("-fx-background-color: var(--border-light); -fx-background-radius: 6px; -fx-cursor: hand;");
+            courseItem.setStyle("-fx-background-color: #f1f5f9; -fx-background-radius: 6px; -fx-cursor: hand;");
 
             Label code = new Label(c.getCode());
             code.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
 
             Label title = new Label(c.getTitle());
-            title.setStyle("-fx-font-size: 11px; -fx-text-fill: var(--text-muted);");
+            title.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
 
             Label credits = new Label(c.getCredits() + " cr");
             credits.setStyle("-fx-font-size: 11px; -fx-font-weight: 600;");
@@ -233,3 +233,4 @@ public class SequencePlannerPane extends BorderPane {
         }
     }
 }
+

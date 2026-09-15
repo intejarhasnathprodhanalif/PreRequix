@@ -85,9 +85,12 @@ public class MainController extends BorderPane {
 
         // Center Views Stack
         centerContentStack = new StackPane();
+        centerContentStack.setMaxWidth(Double.MAX_VALUE);
+        centerContentStack.setMaxHeight(Double.MAX_VALUE);
 
-        VBox centerBox = new VBox(10, conflictAlertPane, centerContentStack);
+        VBox centerBox = new VBox(0, conflictAlertPane, centerContentStack);
         VBox.setVgrow(centerContentStack, Priority.ALWAYS);
+        centerBox.setFillWidth(true);
 
         setCenter(centerBox);
 
@@ -217,25 +220,42 @@ public class MainController extends BorderPane {
         courseCatalogPane = new CourseCatalogPane(primaryStage, graph, this::onCourseSelectedFromView, this::onGraphDataUpdated);
         sequencePlannerPane = new SequencePlannerPane(primaryStage, graph, this::onCourseSelectedFromView);
 
+        // Start with all hidden; showGraphView() will reveal the correct one
+        graphViewPane.setVisible(false);     graphViewPane.setManaged(false);
+        courseCatalogPane.setVisible(false); courseCatalogPane.setManaged(false);
+        sequencePlannerPane.setVisible(false); sequencePlannerPane.setManaged(false);
+
         centerContentStack.getChildren().addAll(graphViewPane, courseCatalogPane, sequencePlannerPane);
     }
 
+    /** Show only graphViewPane, hide the other two. */
     private void showGraphView() {
         setNavActive(graphNavBtn);
-        graphViewPane.toFront();
+        setOnlyVisible(graphViewPane);
         graphViewPane.renderGraph();
     }
 
+    /** Show only courseCatalogPane, hide the other two. */
     private void showCatalogView() {
         setNavActive(catalogNavBtn);
-        courseCatalogPane.toFront();
+        setOnlyVisible(courseCatalogPane);
         courseCatalogPane.refreshTable();
     }
 
+    /** Show only sequencePlannerPane, hide the other two. */
     private void showSequenceView() {
         setNavActive(sequenceNavBtn);
-        sequencePlannerPane.toFront();
+        setOnlyVisible(sequencePlannerPane);
         sequencePlannerPane.generateRoadmap();
+    }
+
+    /** Make exactly one child of centerContentStack visible; hide+unmanage all others. */
+    private void setOnlyVisible(javafx.scene.Node target) {
+        for (javafx.scene.Node child : centerContentStack.getChildren()) {
+            boolean show = child == target;
+            child.setVisible(show);
+            child.setManaged(show);
+        }
     }
 
     private void setNavActive(Button activeBtn) {
