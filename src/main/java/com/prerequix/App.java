@@ -1,5 +1,6 @@
 package com.prerequix;
 
+import com.prerequix.concurrent.AppExecutor;
 import com.prerequix.ui.MainController;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -30,6 +31,16 @@ public class App extends Application {
         primaryStage.setMinWidth(1000);
         primaryStage.setMinHeight(650);
         primaryStage.show();
+    }
+
+    /**
+     * Called by the JavaFX runtime when the application window closes.
+     * Shuts down both thread-pool executors in AppExecutor so the JVM
+     * can exit cleanly without waiting for daemon threads.
+     */
+    @Override
+    public void stop() {
+        AppExecutor.getInstance().shutdown();
     }
 
     public static void main(String[] args) {

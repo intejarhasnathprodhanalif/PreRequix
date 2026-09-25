@@ -43,10 +43,24 @@ public class ConflictAlertPane extends VBox {
         getChildren().addAll(header, pathLabel);
     }
 
+    /**
+     * Original method – runs cycle detection itself.
+     * Still available for callers that don't use the background task.
+     */
     public boolean updateConflictStatus(CourseGraph graph) {
-        List<String> cyclePath = graph.detectCycle();
+        return applyComputedCycle(graph.detectCycle());
+    }
+
+    /**
+     * Apply a pre-computed cycle path (from {@link com.prerequix.concurrent.GraphComputeTask}).
+     * Must be called on the JavaFX Application Thread.
+     *
+     * @param cyclePath list of course IDs forming the cycle; empty means no cycle.
+     * @return {@code true} if a cycle was visible.
+     */
+    public boolean applyComputedCycle(List<String> cyclePath) {
         if (!cyclePath.isEmpty()) {
-            String cycleStr = String.join(" ➔ ", cyclePath);
+            String cycleStr = String.join(" \u2794 ", cyclePath);
             pathLabel.setText("Loop path: " + cycleStr + "\nPlease edit prerequisite links to resolve this cycle.");
             setVisible(true);
             setManaged(true);
@@ -58,3 +72,4 @@ public class ConflictAlertPane extends VBox {
         }
     }
 }
+

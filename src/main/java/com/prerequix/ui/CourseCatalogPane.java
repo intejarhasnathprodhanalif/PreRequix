@@ -1,8 +1,11 @@
 package com.prerequix.ui;
 
+import com.prerequix.concurrent.AppExecutor;
+import com.prerequix.concurrent.SearchFilterTask;
 import com.prerequix.model.Course;
 import com.prerequix.model.CourseGraph;
 import com.prerequix.model.CourseStatus;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -33,6 +36,9 @@ public class CourseCatalogPane extends BorderPane {
 
     private final TextField searchField;
     private String currentFilter = "ALL";
+
+    /** Tracks the most-recently-submitted search task so we can cancel stale ones. */
+    private volatile SearchFilterTask pendingSearchTask;
 
     public CourseCatalogPane(Stage primaryStage,
                              CourseGraph graph,
@@ -181,34 +187,31 @@ public class CourseCatalogPane extends BorderPane {
         return rb;
     }
 
+    /**
+     * Submits a {@link SearchFilterTask} on the compute pool.
+     * Any previously pending (but not yet finished) search task is cancelled first
+     * so that only the latest filter request wins.
+     */
     public void refreshTable() {
-        String searchText = searchField.getText().trim().toLowerCase();
-        List<Course> filtered = graph.getAllCourses().stream().filter(c -> {
-            // Text search
-            boolean matchesSearch = searchText.isEmpty()
-                    || c.getCode().toLowerCase().contains(searchText)
-                    || c.getTitle().toLowerCase().contains(searchText)
-                    || c.getDepartment().toLowerCase().contains(searchText);
+        // Cancel any stale search still running
+        SearchFilterTask old = pendingSearchTask;
+        if (old != null) old.cancel(false);
 
-            if (!matchesSearch) return false;
+        SearchFilterTask task = new SearchFilterTask(graph,
+                searchField.getText(), currentFilter);
+        pendingSearchTask = task;
 
-            // Category filter
-            switch (currentFilter) {
-                case "AVAILABLE":
-                    return graph.isCourseAvailable(c.getId());
-                case "COMPLETED":
-                    return c.isCompleted();
-                case "IN_PROGRESS":
-                    return c.isInProgress();
-                case "UNCOMPLETED":
-                    return !c.isCompleted() && !graph.isCourseAvailable(c.getId());
-                case "ALL":
-                default:
-                    return true;
+        task.setOnSucceeded(e -> Platform.runLater(() -> {
+            if (!task.isCancelled()) {
+                tableData.setAll(task.getValue());
             }
-        }).collect(Collectors.toList());
+        }));
+        // On failure silently fall back to a full refresh on the UI thread
+        task.setOnFailed(e -> Platform.runLater(() -> {
+            tableData.setAll(graph.getAllCourses());
+        }));
 
-        tableData.setAll(filtered);
+        AppExecutor.getInstance().computePool().submit(task);
     }
 
     private void openAddCourseDialog(Course existingCourse) {

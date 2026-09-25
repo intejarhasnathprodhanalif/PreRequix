@@ -1,8 +1,11 @@
-﻿package com.prerequix.ui;
+package com.prerequix.ui;
 
+import com.prerequix.concurrent.AppExecutor;
+import com.prerequix.concurrent.GraphComputeTask;
 import com.prerequix.model.Course;
 import com.prerequix.model.CourseGraph;
 import com.prerequix.model.SemesterPlan;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -97,45 +100,74 @@ public class SequencePlannerPane extends BorderPane {
         generateRoadmap();
     }
 
+    /**
+     * Returns the current max-credits-per-term slider value.
+     * Called by {@link MainController} to pass into {@link GraphComputeTask}.
+     */
+    public double getCurrentMaxCredits() {
+        return creditSlider.getValue();
+    }
+
+    /**
+     * Kicks off a background {@link GraphComputeTask} with the current slider
+     * value and calls {@link #applyComputedPlan} when it finishes.
+     * Called by the slider listener (when the user drags the slider).
+     */
     public void generateRoadmap() {
+        double maxCredits = creditSlider.getValue();
+        GraphComputeTask task = new GraphComputeTask(graph, maxCredits);
+        task.setOnSucceeded(e ->
+                Platform.runLater(() -> applyComputedPlan(task.getValue().semesterPlan,
+                        task.getValue().hasCycle())));
+        task.setOnFailed(e -> Platform.runLater(() -> {
+            termsContainer.getChildren().clear();
+            Label err = new Label("⚠️ Cannot generate schedule: " + task.getException().getMessage());
+            err.getStyleClass().add("conflict-text");
+            termsContainer.getChildren().add(err);
+            summaryStatsLabel.setText("Error");
+        }));
+        AppExecutor.getInstance().computePool().submit(task);
+    }
+
+    /**
+     * Applies a pre-computed semester plan to the UI.
+     * Always called on the JavaFX Application Thread (via {@code Platform.runLater}).
+     *
+     * @param schedule semester plan from {@link GraphComputeTask.Result}
+     * @param hasCycle whether a circular dependency exists
+     */
+    public void applyComputedPlan(List<SemesterPlan> schedule, boolean hasCycle) {
         termsContainer.getChildren().clear();
+        double maxCredits = creditSlider.getValue();
 
-        try {
-            double maxCredits = creditSlider.getValue();
-            List<SemesterPlan> schedule = graph.generateSemesterPlan(maxCredits);
-
-            if (schedule.isEmpty()) {
-                Label empty = new Label("🎉 All courses in your curriculum are completed!");
-                empty.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #10b981;");
-                termsContainer.getChildren().add(empty);
-                summaryStatsLabel.setText("0 Remaining Terms Required");
-                return;
-            }
-
-            double totalRemainingCredits = schedule.stream()
-                    .mapToDouble(SemesterPlan::getTotalCredits)
-                    .sum();
-
-            summaryStatsLabel.setText(String.format("🎓 %d Term%s Required (%.1f Total Credits)",
-                    schedule.size(), schedule.size() > 1 ? "s" : "", totalRemainingCredits));
-
-            FlowPane termsGrid = new FlowPane();
-            termsGrid.setHgap(16);
-            termsGrid.setVgap(16);
-
-            for (SemesterPlan plan : schedule) {
-                VBox termCard = createTermCard(plan, maxCredits);
-                termsGrid.getChildren().add(termCard);
-            }
-
-            termsContainer.getChildren().add(termsGrid);
-
-        } catch (IllegalStateException e) {
-            Label errorLbl = new Label("⚠️ Cannot generate schedule: Graph contains circular prerequisite dependencies!");
+        if (hasCycle) {
+            Label errorLbl = new Label("⚠️ Cannot generate schedule: circular prerequisite dependency detected!");
             errorLbl.getStyleClass().add("conflict-text");
             termsContainer.getChildren().add(errorLbl);
             summaryStatsLabel.setText("Conflict Detected");
+            return;
         }
+
+        if (schedule.isEmpty()) {
+            Label empty = new Label("🎉 All courses in your curriculum are completed!");
+            empty.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #10b981;");
+            termsContainer.getChildren().add(empty);
+            summaryStatsLabel.setText("0 Remaining Terms Required");
+            return;
+        }
+
+        double totalRemainingCredits = schedule.stream()
+                .mapToDouble(SemesterPlan::getTotalCredits).sum();
+        summaryStatsLabel.setText(String.format("🎓 %d Term%s Required (%.1f Total Credits)",
+                schedule.size(), schedule.size() > 1 ? "s" : "", totalRemainingCredits));
+
+        FlowPane termsGrid = new FlowPane();
+        termsGrid.setHgap(16);
+        termsGrid.setVgap(16);
+        for (SemesterPlan plan : schedule) {
+            termsGrid.getChildren().add(createTermCard(plan, maxCredits));
+        }
+        termsContainer.getChildren().add(termsGrid);
     }
 
     private VBox createTermCard(SemesterPlan plan, double maxCredits) {

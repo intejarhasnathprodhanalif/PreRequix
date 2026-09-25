@@ -1,16 +1,19 @@
 package com.prerequix.ui;
 
+import com.prerequix.concurrent.AppExecutor;
+import com.prerequix.concurrent.GraphComputeTask;
+import com.prerequix.concurrent.LoadDataTask;
+import com.prerequix.concurrent.SaveDataTask;
 import com.prerequix.model.Course;
 import com.prerequix.model.CourseGraph;
 import com.prerequix.storage.CourseStorageManager;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-
-import java.util.Collection;
 
 /**
  * Main application layout controller managing sidebar navigation, header status bar, views, and data persistence.
@@ -40,21 +43,21 @@ public class MainController extends BorderPane {
 
     private boolean isDarkMode = false;
 
+    /** Shown at the bottom of the window; updated by background tasks. */
+    private Label statusBarLabel;
+    /** Spinner that spins whenever a background task is running. */
+    private ProgressIndicator busySpinner;
+
     public MainController(Stage primaryStage) {
         this.primaryStage = primaryStage;
         this.graph = new CourseGraph();
         this.storageManager = new CourseStorageManager();
 
-        // Load saved state or default CS preset
-        if (!storageManager.loadGraph(graph)) {
-            storageManager.loadComputerSciencePreset(graph);
-        }
-
         // Initialize Stats Labels
-        totalCoursesVal = new Label("0");
-        completedVal = new Label("0");
-        availableVal = new Label("0");
-        totalCreditsVal = new Label("0");
+        totalCoursesVal = new Label("…");
+        completedVal    = new Label("…");
+        availableVal    = new Label("…");
+        totalCreditsVal = new Label("…");
 
         // Conflict Warning Banner
         conflictAlertPane = new ConflictAlertPane();
@@ -68,8 +71,8 @@ public class MainController extends BorderPane {
         );
 
         // Sidebar Buttons
-        graphNavBtn = new Button("🕸️ Graph Network");
-        catalogNavBtn = new Button("📚 Course Catalog");
+        graphNavBtn    = new Button("🕸️ Graph Network");
+        catalogNavBtn  = new Button("📚 Course Catalog");
         sequenceNavBtn = new Button("🗓️ Sequence Planner");
 
         setupSidebarNavigation();
@@ -93,10 +96,26 @@ public class MainController extends BorderPane {
         centerBox.setFillWidth(true);
 
         setCenter(centerBox);
+        setBottom(createStatusBar());
 
         initializeViews();
         showGraphView();
-        updateStatsAndConflicts();
+
+        // ── Load data asynchronously on the I/O thread ───────────────────
+        LoadDataTask loadTask = new LoadDataTask(graph, storageManager);
+        loadTask.messageProperty().addListener((obs, o, msg) ->
+                Platform.runLater(() -> statusBarLabel.setText(msg)));
+        loadTask.setOnSucceeded(e -> Platform.runLater(() -> {
+            busySpinner.setVisible(false);
+            refreshAllViews();
+        }));
+        loadTask.setOnFailed(e -> Platform.runLater(() -> {
+            busySpinner.setVisible(false);
+            statusBarLabel.setText("Load failed: " + loadTask.getException().getMessage());
+            refreshAllViews();   // show whatever is in the graph already
+        }));
+        busySpinner.setVisible(true);
+        AppExecutor.getInstance().ioExecutor().submit(loadTask);
     }
 
     private HBox createHeaderBar() {
@@ -290,34 +309,87 @@ public class MainController extends BorderPane {
     }
 
     private void onGraphDataUpdated() {
-        saveState();
+        saveStateAsync();
         refreshAllViews();
     }
 
+    /**
+     * Triggers a full async refresh:
+     * 1. Re-renders the graph canvas (UI thread – fast).
+     * 2. Runs {@link GraphComputeTask} off-thread to compute stats, cycle,
+     *    and semester plan, then applies results back on the UI thread.
+     * 3. Asks CourseCatalogPane to re-filter its table.
+     */
     public void refreshAllViews() {
-        updateStatsAndConflicts();
+        // ── UI-thread work (fast): redraw graph nodes ────────────────────
         graphViewPane.renderGraph();
         courseCatalogPane.refreshTable();
-        sequencePlannerPane.generateRoadmap();
+
+        // ── Background compute task ──────────────────────────────────────
+        double maxCredits = sequencePlannerPane.getCurrentMaxCredits();
+        GraphComputeTask task = new GraphComputeTask(graph, maxCredits);
+
+        task.messageProperty().addListener((obs, o, msg) ->
+                Platform.runLater(() -> statusBarLabel.setText(msg)));
+
+        task.setOnSucceeded(e -> Platform.runLater(() -> {
+            busySpinner.setVisible(false);
+            GraphComputeTask.Result r = task.getValue();
+
+            // Update header stats
+            totalCoursesVal.setText(String.valueOf(r.total));
+            completedVal.setText(String.valueOf(r.completed));
+            availableVal.setText(String.valueOf(r.available));
+            totalCreditsVal.setText(String.format("%.1f", r.totalCredits));
+
+            // Update conflict banner
+            conflictAlertPane.applyComputedCycle(r.cyclePath);
+
+            // Push semester plan into the planner view
+            sequencePlannerPane.applyComputedPlan(r.semesterPlan, r.hasCycle());
+
+            statusBarLabel.setText("Ready.");
+        }));
+
+        task.setOnFailed(e -> Platform.runLater(() -> {
+            busySpinner.setVisible(false);
+            statusBarLabel.setText("Compute error: " + task.getException().getMessage());
+        }));
+
+        busySpinner.setVisible(true);
+        AppExecutor.getInstance().computePool().submit(task);
     }
 
-    private void updateStatsAndConflicts() {
-        Collection<Course> all = graph.getAllCourses();
-        totalCoursesVal.setText(String.valueOf(all.size()));
-        completedVal.setText(String.valueOf(graph.getCompletedCourses().size()));
-        availableVal.setText(String.valueOf(graph.getAvailableCourses().size()));
-
-        double credits = all.stream().mapToDouble(Course::getCredits).sum();
-        totalCreditsVal.setText(String.format("%.1f", credits));
-
-        conflictAlertPane.updateConflictStatus(graph);
+    /**
+     * Saves the graph asynchronously on the dedicated I/O thread so the
+     * UI never freezes during a file write.
+     */
+    private void saveStateAsync() {
+        SaveDataTask saveTask = new SaveDataTask(graph, storageManager);
+        saveTask.messageProperty().addListener((obs, o, msg) ->
+                Platform.runLater(() -> statusBarLabel.setText(msg)));
+        saveTask.setOnFailed(e ->
+                Platform.runLater(() -> statusBarLabel.setText(
+                        "Save failed: " + saveTask.getException().getMessage())));
+        AppExecutor.getInstance().ioExecutor().submit(saveTask);
     }
 
-    private void saveState() {
-        try {
-            storageManager.saveGraph(graph);
-        } catch (Exception e) {
-            System.err.println("Error saving state: " + e.getMessage());
-        }
+    /** Thin status bar shown at the bottom of the window. */
+    private HBox createStatusBar() {
+        statusBarLabel = new Label("Initialising…");
+        statusBarLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
+
+        busySpinner = new ProgressIndicator();
+        busySpinner.setPrefSize(14, 14);
+        busySpinner.setStyle("-fx-accent: #3b82f6;");
+        busySpinner.setVisible(false);
+
+        HBox bar = new HBox(8, busySpinner, statusBarLabel);
+        bar.setAlignment(Pos.CENTER_LEFT);
+        bar.setPadding(new Insets(4, 14, 4, 14));
+        bar.setStyle("-fx-background-color: #f8fafc; "
+                + "-fx-border-color: #e2e8f0 transparent transparent transparent; "
+                + "-fx-border-width: 1px;");
+        return bar;
     }
 }
