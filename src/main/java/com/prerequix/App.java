@@ -1,6 +1,7 @@
 package com.prerequix;
 
 import com.prerequix.concurrent.AppExecutor;
+import com.prerequix.db.DatabaseManager;
 import com.prerequix.ui.MainController;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -15,6 +16,14 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        // Initialize SQLite database (creates file + tables if not present)
+        try {
+            DatabaseManager.getInstance().initialize();
+        } catch (Exception e) {
+            System.err.println("[DB] Initialization failed: " + e.getMessage());
+            // Non-fatal: app continues, data just won't persist across restarts
+        }
+
         primaryStage.setTitle("PreRequix - Course Prerequisite Planner");
 
         MainController root = new MainController(primaryStage);

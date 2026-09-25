@@ -1,13 +1,15 @@
 package com.prerequix.ui;
 
 import com.prerequix.concurrent.AppExecutor;
+import com.prerequix.concurrent.DatabaseLoadTask;
+import com.prerequix.concurrent.DatabaseSaveTask;
+import com.prerequix.concurrent.FetchCoursesTask;
 import com.prerequix.concurrent.GraphComputeTask;
-import com.prerequix.concurrent.LoadDataTask;
-import com.prerequix.concurrent.SaveDataTask;
+import com.prerequix.db.DatabaseManager;
 import com.prerequix.model.Course;
 import com.prerequix.model.CourseGraph;
-import com.prerequix.storage.CourseStorageManager;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -16,14 +18,24 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 /**
- * Main application layout controller managing sidebar navigation, header
- * status bar, views, and data persistence.
+ * Main application layout controller.
+ *
+ * <p>Responsibilities:
+ * <ul>
+ *   <li>Builds the global BorderPane layout (header, sidebar, center stack, detail pane, status bar).</li>
+ *   <li>Manages view switching (Graph / Catalog / Sequence Planner) via a StackPane.</li>
+ *   <li>Wires all async tasks: DB load/save, graph compute, and remote course fetch.</li>
+ *   <li>Applies responsive layout bindings so sidebar and detail pane scale with the window.</li>
+ * </ul>
+ *
+ * <p><b>Layout Responsiveness:</b> sidebar width and detail pane width are bound
+ * to the stage width via JavaFX property expressions, so resizing the window
+ * automatically reshapes every major panel.
  */
 public class MainController extends BorderPane {
 
     private final Stage primaryStage;
     private final CourseGraph graph;
-    private final CourseStorageManager storageManager;
 
     private final Label totalCoursesVal;
     private final Label completedVal;
@@ -44,17 +56,13 @@ public class MainController extends BorderPane {
 
     private boolean isDarkMode = false;
 
-    /** Shown at the bottom; updated by background tasks. */
     private Label statusBarLabel;
-    /** Spins whenever a background task is running. */
     private ProgressIndicator busySpinner;
 
     public MainController(Stage primaryStage) {
         this.primaryStage = primaryStage;
         this.graph = new CourseGraph();
-        this.storageManager = new CourseStorageManager();
 
-        // Initialize Stats Labels
         totalCoursesVal = new Label("...");
         completedVal    = new Label("...");
         availableVal    = new Label("...");
@@ -74,11 +82,22 @@ public class MainController extends BorderPane {
         sequenceNavBtn = new Button("Sequence Planner");
 
         setupSidebarNavigation();
-
         setTop(createHeaderBar());
-        setLeft(createSidebar());
+
+        // ── Sidebar with responsive width binding ─────────────────────────
+        VBox sidebar = createSidebar();
+        // Width = 16 % of stage width, clamped between 160 and 240 px
+        sidebar.prefWidthProperty().bind(
+                Bindings.max(160, Bindings.min(240, primaryStage.widthProperty().multiply(0.16))));
+        setLeft(sidebar);
+
+        // ── Detail pane with responsive width binding ─────────────────────
+        // Width = 26 % of stage width, clamped between 280 and 380 px
+        courseDetailPane.prefWidthProperty().bind(
+                Bindings.max(280, Bindings.min(380, primaryStage.widthProperty().multiply(0.26))));
         setRight(courseDetailPane);
 
+        // ── Center view stack ─────────────────────────────────────────────
         centerContentStack = new StackPane();
         centerContentStack.setMaxWidth(Double.MAX_VALUE);
         centerContentStack.setMaxHeight(Double.MAX_VALUE);
@@ -93,8 +112,9 @@ public class MainController extends BorderPane {
         initializeViews();
         showGraphView();
 
-        // Load data asynchronously on the I/O thread
-        LoadDataTask loadTask = new LoadDataTask(graph, storageManager);
+        // ── Load data from SQLite on start-up ─────────────────────────────
+        DatabaseLoadTask loadTask = new DatabaseLoadTask(
+                graph, DatabaseManager.getInstance().repository());
         loadTask.messageProperty().addListener((obs, o, msg) ->
                 Platform.runLater(() -> statusBarLabel.setText(msg)));
         loadTask.setOnSucceeded(e -> Platform.runLater(() -> {
@@ -103,12 +123,14 @@ public class MainController extends BorderPane {
         }));
         loadTask.setOnFailed(e -> Platform.runLater(() -> {
             busySpinner.setVisible(false);
-            statusBarLabel.setText("Load failed: " + loadTask.getException().getMessage());
+            statusBarLabel.setText("DB load failed: " + loadTask.getException().getMessage());
             refreshAllViews();
         }));
         busySpinner.setVisible(true);
         AppExecutor.getInstance().ioExecutor().submit(loadTask);
     }
+
+    // ─── Header ───────────────────────────────────────────────────────────
 
     private HBox createHeaderBar() {
         HBox header = new HBox(16);
@@ -117,10 +139,8 @@ public class MainController extends BorderPane {
 
         Label logo = new Label("PreRequix");
         logo.getStyleClass().add("app-title");
-
         Label tag = new Label("Course Prerequisite Planner");
         tag.getStyleClass().add("muted-text");
-
         VBox brandBox = new VBox(2, logo, tag);
 
         HBox statsBox = new HBox(10,
@@ -131,6 +151,7 @@ public class MainController extends BorderPane {
         );
         statsBox.setAlignment(Pos.CENTER_LEFT);
 
+        // Preset curricula
         ComboBox<String> presetCombo = new ComboBox<>();
         presetCombo.getItems().addAll(
                 "Load CS Curriculum",
@@ -140,16 +161,25 @@ public class MainController extends BorderPane {
         presetCombo.setPromptText("Sample Curricula");
         presetCombo.getStyleClass().add("btn-secondary");
         presetCombo.setOnAction(e -> {
-            String selected = presetCombo.getValue();
-            if (selected != null) {
-                if (selected.contains("CS"))       storageManager.loadComputerSciencePreset(graph);
-                else if (selected.contains("EE"))  storageManager.loadElectricalEngineeringPreset(graph);
-                else if (selected.contains("Business")) storageManager.loadBusinessAnalyticsPreset(graph);
+            String sel = presetCombo.getValue();
+            if (sel != null) {
+                com.prerequix.storage.CourseStorageManager mgr =
+                        new com.prerequix.storage.CourseStorageManager();
+                if (sel.contains("CS"))       mgr.loadComputerSciencePreset(graph);
+                else if (sel.contains("EE"))  mgr.loadElectricalEngineeringPreset(graph);
+                else if (sel.contains("Business")) mgr.loadBusinessAnalyticsPreset(graph);
                 saveStateAsync();
                 refreshAllViews();
+                presetCombo.setValue(null);
             }
         });
 
+        // Import from Web
+        Button importWebBtn = new Button("Import from Web");
+        importWebBtn.getStyleClass().add("btn-secondary");
+        importWebBtn.setOnAction(e -> onImportFromWeb());
+
+        // Dark / Light toggle
         Button themeBtn = new Button("Dark Mode");
         themeBtn.getStyleClass().add("btn-secondary");
         themeBtn.setOnAction(e -> {
@@ -177,12 +207,11 @@ public class MainController extends BorderPane {
             }
         });
 
-        HBox actionsBox = new HBox(8, presetCombo, themeBtn, addCourseBtn);
+        HBox actionsBox = new HBox(8, presetCombo, importWebBtn, themeBtn, addCourseBtn);
         actionsBox.setAlignment(Pos.CENTER_RIGHT);
 
         header.getChildren().addAll(brandBox, new Separator(), statsBox, new Region(), actionsBox);
         HBox.setHgrow(header.getChildren().get(3), Priority.ALWAYS);
-
         return header;
     }
 
@@ -195,10 +224,12 @@ public class MainController extends BorderPane {
         return box;
     }
 
+    // ─── Sidebar ──────────────────────────────────────────────────────────
+
     private VBox createSidebar() {
         VBox sidebar = new VBox(10);
         sidebar.getStyleClass().add("sidebar");
-        sidebar.setPrefWidth(200);
+        sidebar.setPadding(new Insets(16, 10, 16, 10));
 
         graphNavBtn.getStyleClass().addAll("sidebar-btn", "sidebar-btn-active");
         catalogNavBtn.getStyleClass().add("sidebar-btn");
@@ -218,6 +249,8 @@ public class MainController extends BorderPane {
 
     private void setupSidebarNavigation() {}
 
+    // ─── Views ────────────────────────────────────────────────────────────
+
     private void initializeViews() {
         graphViewPane      = new GraphViewPane(graph, this::onCourseSelectedFromView);
         courseCatalogPane  = new CourseCatalogPane(primaryStage, graph,
@@ -225,9 +258,9 @@ public class MainController extends BorderPane {
         sequencePlannerPane = new SequencePlannerPane(primaryStage, graph,
                                  this::onCourseSelectedFromView);
 
-        graphViewPane.setVisible(false);      graphViewPane.setManaged(false);
-        courseCatalogPane.setVisible(false);  courseCatalogPane.setManaged(false);
-        sequencePlannerPane.setVisible(false); sequencePlannerPane.setManaged(false);
+        graphViewPane.setVisible(false);       graphViewPane.setManaged(false);
+        courseCatalogPane.setVisible(false);   courseCatalogPane.setManaged(false);
+        sequencePlannerPane.setVisible(false);  sequencePlannerPane.setManaged(false);
 
         centerContentStack.getChildren().addAll(
                 graphViewPane, courseCatalogPane, sequencePlannerPane);
@@ -251,7 +284,6 @@ public class MainController extends BorderPane {
         sequencePlannerPane.generateRoadmap();
     }
 
-    /** Make exactly one child visible; hide and unmanage all others. */
     private void setOnlyVisible(javafx.scene.Node target) {
         for (javafx.scene.Node child : centerContentStack.getChildren()) {
             boolean show = child == target;
@@ -266,6 +298,8 @@ public class MainController extends BorderPane {
         sequenceNavBtn.getStyleClass().remove("sidebar-btn-active");
         activeBtn.getStyleClass().add("sidebar-btn-active");
     }
+
+    // ─── Event handlers ───────────────────────────────────────────────────
 
     private void onCourseSelectedFromView(Course course) {
         courseDetailPane.displayCourse(course);
@@ -295,18 +329,94 @@ public class MainController extends BorderPane {
         refreshAllViews();
     }
 
+    // ─── Import from Web ──────────────────────────────────────────────────
+
     /**
-     * Full async refresh:
-     * 1. Redraws the graph canvas on the UI thread (fast).
-     * 2. Runs GraphComputeTask off-thread for stats + cycle + plan.
-     * 3. Asks CourseCatalogPane to re-filter its table (async).
+     * Launches a background {@link FetchCoursesTask} that GETs the sample
+     * courses JSON from GitHub, parses it, and opens an import-preview dialog.
+     */
+    private void onImportFromWeb() {
+        statusBarLabel.setText("Fetching courses from GitHub...");
+        busySpinner.setVisible(true);
+
+        FetchCoursesTask fetchTask = new FetchCoursesTask(
+                com.prerequix.net.CourseApiClient.SAMPLE_COURSES_URL);
+
+        fetchTask.messageProperty().addListener((obs, o, msg) ->
+                Platform.runLater(() -> statusBarLabel.setText(msg)));
+
+        fetchTask.setOnSucceeded(e -> Platform.runLater(() -> {
+            busySpinner.setVisible(false);
+            FetchCoursesTask.FetchResult result = fetchTask.getValue();
+            showImportDialog(result);
+        }));
+
+        fetchTask.setOnFailed(e -> Platform.runLater(() -> {
+            busySpinner.setVisible(false);
+            statusBarLabel.setText("Fetch failed: " + fetchTask.getException().getMessage());
+            new Alert(Alert.AlertType.ERROR,
+                    "Could not fetch courses from GitHub:\n" +
+                    fetchTask.getException().getMessage()).showAndWait();
+        }));
+
+        AppExecutor.getInstance().computePool().submit(fetchTask);
+    }
+
+    /** Shows a preview dialog; confirmed courses are imported into the graph + DB. */
+    private void showImportDialog(FetchCoursesTask.FetchResult result) {
+        Alert dlg = new Alert(Alert.AlertType.CONFIRMATION);
+        dlg.initOwner(primaryStage);
+        dlg.setTitle("Import Courses from Web");
+        dlg.setHeaderText("Fetched from: " + result.sourceInfo());
+        dlg.setContentText(
+                result.courses().size() + " courses found in the remote JSON.\n\n" +
+                "Import all of them into your curriculum?\n" +
+                "(Existing courses with the same code will be updated.)");
+
+        dlg.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.OK) {
+                int imported = 0;
+                for (Course c : result.courses()) {
+                    if (!graph.hasCourse(c.getId())) {
+                        graph.addCourse(c);
+                    } else {
+                        // Update existing entry
+                        Course existing = graph.getCourse(c.getId());
+                        existing.setTitle(c.getTitle());
+                        existing.setCredits(c.getCredits());
+                        existing.setDepartment(c.getDepartment());
+                        existing.setDescription(c.getDescription());
+                    }
+                    imported++;
+                }
+                // Resolve prerequisite codes → IDs after all courses are in the graph
+                for (Course c : result.courses()) {
+                    for (String prereqCode : new java.util.HashSet<>(c.getPrerequisiteIds())) {
+                        String prereqId = Course.sanitizeId(prereqCode);
+                        if (graph.hasCourse(prereqId) &&
+                                !graph.wouldCauseCycle(c.getId(), prereqId)) {
+                            graph.addPrerequisite(c.getId(), prereqId);
+                        }
+                    }
+                }
+                saveStateAsync();
+                refreshAllViews();
+                statusBarLabel.setText("Imported " + imported + " courses from web.");
+            }
+        });
+    }
+
+    // ─── Async refresh ────────────────────────────────────────────────────
+
+    /**
+     * Full async refresh: redraws graph + catalog, then submits a background
+     * compute task for stats, cycle detection, and the semester plan.
      */
     public void refreshAllViews() {
         graphViewPane.renderGraph();
         courseCatalogPane.refreshTable();
 
         GraphComputeTask task = new GraphComputeTask(graph);
-
         task.messageProperty().addListener((obs, o, msg) ->
                 Platform.runLater(() -> statusBarLabel.setText(msg)));
 
@@ -333,9 +443,10 @@ public class MainController extends BorderPane {
         AppExecutor.getInstance().computePool().submit(task);
     }
 
-    /** Saves the graph asynchronously on the dedicated I/O thread. */
+    /** Persists the entire graph to SQLite asynchronously on the I/O thread. */
     private void saveStateAsync() {
-        SaveDataTask saveTask = new SaveDataTask(graph, storageManager);
+        DatabaseSaveTask saveTask = new DatabaseSaveTask(
+                graph, DatabaseManager.getInstance().repository());
         saveTask.messageProperty().addListener((obs, o, msg) ->
                 Platform.runLater(() -> statusBarLabel.setText(msg)));
         saveTask.setOnFailed(e ->
@@ -344,7 +455,8 @@ public class MainController extends BorderPane {
         AppExecutor.getInstance().ioExecutor().submit(saveTask);
     }
 
-    /** Thin status bar at the bottom of the window. */
+    // ─── Status bar ───────────────────────────────────────────────────────
+
     private HBox createStatusBar() {
         statusBarLabel = new Label("Initialising...");
         statusBarLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
