@@ -2,11 +2,11 @@ package com.prerequix.ui;
 
 import com.prerequix.concurrent.AppExecutor;
 import com.prerequix.concurrent.GraphComputeTask;
+import com.prerequix.model.AcademicPlanResult;
 import com.prerequix.model.Course;
 import com.prerequix.model.CourseGraph;
 import com.prerequix.model.SemesterPlan;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -23,24 +23,38 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
- * Visual term-by-term roadmap sequence generator and semester planner.
- * Includes an "Edit Plan" mode that lets students manually move courses
- * between terms, with live prerequisite-completion warnings.
+ * Visual term-by-term academic sequence planner.
+ *
+ * <p>Academic constraints (hard rules):
+ * <ul>
+ *   <li>Each term has <b>exactly 5 courses</b> (last term may have fewer if
+ *       the credit cap is reached).</li>
+ *   <li>Total credits across all planned terms must <b>not exceed 120</b>.</li>
+ *   <li>Courses that cannot fit within the 120-credit cap are shown in an
+ *       "Excluded from Plan" panel.</li>
+ * </ul>
  */
 public class SequencePlannerPane extends BorderPane {
+
+    /** Hard academic rules displayed in the UI and enforced in the algorithm. */
+    private static final int    COURSES_PER_TERM  = GraphComputeTask.COURSES_PER_TERM;
+    private static final double MAX_TOTAL_CREDITS = GraphComputeTask.MAX_TOTAL_CREDITS;
 
     private final Stage primaryStage;
     private final CourseGraph graph;
     private final Consumer<Course> onCourseSelectedListener;
 
-    private final Slider creditSlider;
-    private final Label creditValLabel;
-    private final Label summaryStatsLabel;
-    private final VBox termsContainer;
+    // ── Header widgets ────────────────────────────────────────────────────
+    private final Label planSummaryLabel;
+    private final Label creditUsageLabel;
 
-    /** Latest computed plan – kept so the Edit dialog can re-read it. */
-    private List<SemesterPlan> lastPlan = new ArrayList<>();
-    private boolean lastHadCycle = false;
+    // ── Content area ──────────────────────────────────────────────────────
+    private final VBox termsContainer;
+    private final VBox excludedContainer;
+
+    // ── Current plan state ────────────────────────────────────────────────
+    private AcademicPlanResult lastResult = null;
+    private boolean            lastHadCycle = false;
 
     public SequencePlannerPane(Stage primaryStage, CourseGraph graph,
                                Consumer<Course> onCourseSelectedListener) {
@@ -50,203 +64,309 @@ public class SequencePlannerPane extends BorderPane {
 
         setPadding(new Insets(16));
 
-        // ── Top Control Header ────────────────────────────────────────────
-        VBox topHeader = new VBox(10);
-        topHeader.getStyleClass().add("card-panel");
-        topHeader.setPadding(new Insets(14, 18, 14, 18));
+        // ── Header ────────────────────────────────────────────────────────
+        VBox header = buildHeader();
+        setTop(header);
 
-        Label title = new Label("Valid Course-Taking Sequence Planner");
+        // ── Split center: planned terms on top, excluded below ────────────
+        termsContainer   = new VBox(16);
+        excludedContainer = new VBox(8);
+
+        planSummaryLabel = new Label();
+        planSummaryLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #0f172a;");
+
+        creditUsageLabel = new Label();
+        creditUsageLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b;");
+
+        VBox contentVBox = new VBox(20, planSummaryLabel, creditUsageLabel,
+                termsContainer, buildExcludedSection());
+        contentVBox.setPadding(new Insets(16, 0, 16, 0));
+
+        ScrollPane scroll = new ScrollPane(contentVBox);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        setCenter(scroll);
+
+        generateRoadmap();
+    }
+
+    // ─── Header ───────────────────────────────────────────────────────────
+
+    private VBox buildHeader() {
+        VBox header = new VBox(10);
+        header.getStyleClass().add("card-panel");
+        header.setPadding(new Insets(14, 18, 14, 18));
+
+        Label title = new Label("Academic Course-Taking Sequence Planner");
         title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #0f172a;");
 
         Label subtitle = new Label(
-                "Calculates topological course order and distributes remaining courses into terms based on credit limits.");
+                "Generates a prerequisite-respecting plan from your curriculum. " +
+                "Not all courses need to be included — the plan stops at the credit cap.");
         subtitle.getStyleClass().add("muted-text");
+        subtitle.setWrapText(true);
 
-        Label sliderTitle = new Label("Max Credits Per Term:");
-        sliderTitle.setStyle("-fx-font-weight: 600;");
+        // Constraint badges
+        HBox badge1 = makeBadge("5 courses per term", "#dbeafe", "#1d4ed8");
+        HBox badge2 = makeBadge("Max 120 total credits", "#dcfce7", "#15803d");
+        HBox badge3 = makeBadge("Prerequisites always respected", "#fef9c3", "#a16207");
 
-        creditSlider = new Slider(6.0, 24.0, 15.0);
-        creditSlider.setMajorTickUnit(3.0);
-        creditSlider.setMinorTickCount(2);
-        creditSlider.setSnapToTicks(true);
-        creditSlider.setShowTickMarks(true);
-        creditSlider.setShowTickLabels(true);
-        creditSlider.setPrefWidth(220);
+        HBox badges = new HBox(10, badge1, badge2, badge3);
+        badges.setAlignment(Pos.CENTER_LEFT);
 
-        creditValLabel = new Label("15.0 cr / term");
-        creditValLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #3b82f6;");
-
-        creditSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            creditValLabel.setText(String.format("%.1f cr / term", newVal.doubleValue()));
-            generateRoadmap();
-        });
-
-        HBox sliderBox = new HBox(10, sliderTitle, creditSlider, creditValLabel);
-        sliderBox.setAlignment(Pos.CENTER_LEFT);
-
-        summaryStatsLabel = new Label();
-        summaryStatsLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #0f172a;");
-
-        Button editPlanBtn = new Button("Edit Plan");
-        editPlanBtn.getStyleClass().add("btn-secondary");
-        editPlanBtn.setOnAction(e -> openEditPlanDialog());
+        // Action buttons
+        Button editBtn = new Button("Edit Plan");
+        editBtn.getStyleClass().add("btn-secondary");
+        editBtn.setOnAction(e -> openEditPlanDialog());
 
         Button exportBtn = new Button("Export Schedule");
         exportBtn.getStyleClass().add("btn-secondary");
         exportBtn.setOnAction(e -> exportScheduleReport());
 
-        HBox controlsRow = new HBox(10, sliderBox, summaryStatsLabel, new Region(), editPlanBtn, exportBtn);
-        HBox.setHgrow(controlsRow.getChildren().get(2), Priority.ALWAYS);
-        controlsRow.setAlignment(Pos.CENTER_LEFT);
+        HBox actions = new HBox(10, new Region(), editBtn, exportBtn);
+        HBox.setHgrow(actions.getChildren().get(0), Priority.ALWAYS);
 
-        topHeader.getChildren().addAll(title, subtitle, new Separator(), controlsRow);
-        setTop(topHeader);
+        HBox topRow = new HBox(10, badges, actions);
+        HBox.setHgrow(topRow.getChildren().get(0), Priority.ALWAYS);
+        topRow.setAlignment(Pos.CENTER_LEFT);
 
-        // ── Center Scroll Pane ───────────────────────────────────────────
-        termsContainer = new VBox(16);
-        termsContainer.setPadding(new Insets(16, 0, 16, 0));
-
-        ScrollPane scrollPane = new ScrollPane(termsContainer);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
-
-        setCenter(scrollPane);
-        generateRoadmap();
+        header.getChildren().addAll(title, subtitle, new Separator(), topRow);
+        return header;
     }
 
-    // ─── Public API called by MainController ─────────────────────────────
-
-    public double getCurrentMaxCredits() {
-        return creditSlider.getValue();
+    private HBox makeBadge(String text, String bg, String fg) {
+        Label lbl = new Label(text);
+        lbl.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: " + fg + ";");
+        HBox box = new HBox(lbl);
+        box.setStyle("-fx-background-color: " + bg + "; -fx-background-radius: 20px; -fx-padding: 3px 10px;");
+        box.setAlignment(Pos.CENTER_LEFT);
+        return box;
     }
 
-    /**
-     * Submits a background GraphComputeTask to regenerate the plan.
-     * Called from the slider listener and when switching to this view.
-     */
-    public void generateRoadmap() {
-        double maxCredits = creditSlider.getValue();
-        GraphComputeTask task = new GraphComputeTask(graph, maxCredits);
-        task.setOnSucceeded(e -> Platform.runLater(() ->
-                applyComputedPlan(task.getValue().semesterPlan, task.getValue().hasCycle())));
-        task.setOnFailed(e -> Platform.runLater(() -> {
-            termsContainer.getChildren().clear();
-            Label err = new Label("Cannot generate schedule: " + task.getException().getMessage());
-            err.getStyleClass().add("conflict-text");
-            termsContainer.getChildren().add(err);
-            summaryStatsLabel.setText("Error");
-        }));
-        AppExecutor.getInstance().computePool().submit(task);
+    private VBox buildExcludedSection() {
+        Label header = new Label("Excluded from Plan (credit cap reached)");
+        header.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #b45309;");
+
+        VBox section = new VBox(8, header, excludedContainer);
+        section.setStyle(
+                "-fx-background-color: #fffbeb; -fx-background-radius: 8px; " +
+                "-fx-border-color: #fcd34d; -fx-border-width: 1px; " +
+                "-fx-border-radius: 8px; -fx-padding: 12px;");
+        section.setVisible(false);
+        section.setManaged(false);
+        // Keep the outer reference so renderPlan() can show/hide it
+        section.setUserData("excluded-section");
+        excludedContainer.setUserData(section);   // cross-ref so we can toggle it
+        return section;
     }
 
-    /**
-     * Applies a pre-computed semester plan to the UI (always on the FX thread).
-     */
-    public void applyComputedPlan(List<SemesterPlan> schedule, boolean hasCycle) {
-        this.lastPlan = schedule == null ? new ArrayList<>() : new ArrayList<>(schedule);
+    // ─── Public API ───────────────────────────────────────────────────────
+
+    /** Kept for compilation compatibility; the slider no longer exists. */
+    public double getCurrentMaxCredits() { return MAX_TOTAL_CREDITS; }
+
+    /** Called by MainController after a successful GraphComputeTask. */
+    public void applyComputedPlan(AcademicPlanResult result, boolean hasCycle) {
+        this.lastResult   = result;
         this.lastHadCycle = hasCycle;
-        renderPlan(lastPlan, hasCycle);
+        renderPlan(result, hasCycle);
+    }
+
+    /** Legacy overload used by the edit-plan dialog. */
+    public void applyComputedPlan(List<SemesterPlan> schedule, boolean hasCycle) {
+        applyComputedPlan(new AcademicPlanResult(schedule, List.of()), hasCycle);
+    }
+
+    /** Submits a background task to recompute and re-render the plan. */
+    public void generateRoadmap() {
+        GraphComputeTask task = new GraphComputeTask(graph);
+        task.setOnSucceeded(e -> Platform.runLater(() ->
+                applyComputedPlan(task.getValue().academicPlan, task.getValue().hasCycle())));
+        task.setOnFailed(e -> Platform.runLater(() -> showError(task.getException().getMessage())));
+        AppExecutor.getInstance().computePool().submit(task);
     }
 
     // ─── Rendering ────────────────────────────────────────────────────────
 
-    private void renderPlan(List<SemesterPlan> schedule, boolean hasCycle) {
+    private void renderPlan(AcademicPlanResult result, boolean hasCycle) {
         termsContainer.getChildren().clear();
-        double maxCredits = creditSlider.getValue();
+        excludedContainer.getChildren().clear();
 
         if (hasCycle) {
-            Label err = new Label("Cannot generate schedule: circular prerequisite dependency detected!");
-            err.getStyleClass().add("conflict-text");
-            termsContainer.getChildren().add(err);
-            summaryStatsLabel.setText("Conflict Detected");
+            planSummaryLabel.setText("Cannot generate plan: circular dependency detected!");
+            planSummaryLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #ef4444;");
+            creditUsageLabel.setText("");
+            hideExcludedSection();
             return;
         }
-        if (schedule.isEmpty()) {
-            Label empty = new Label("All courses in your curriculum are completed!");
-            empty.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #10b981;");
-            termsContainer.getChildren().add(empty);
-            summaryStatsLabel.setText("0 Remaining Terms Required");
+        if (result == null || result.plannedTerms.isEmpty()) {
+            planSummaryLabel.setText("All courses in your curriculum are completed!");
+            planSummaryLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #10b981;");
+            creditUsageLabel.setText("");
+            hideExcludedSection();
             return;
         }
 
-        double total = schedule.stream().mapToDouble(SemesterPlan::getTotalCredits).sum();
-        summaryStatsLabel.setText(String.format("%d Term%s Required (%.1f Total Credits)",
-                schedule.size(), schedule.size() > 1 ? "s" : "", total));
+        // Summary bar
+        planSummaryLabel.setText(String.format(
+                "%d Term%s Required  |  %d Courses Planned",
+                result.totalTerms,
+                result.totalTerms != 1 ? "s" : "",
+                result.plannedTerms.stream().mapToInt(p -> p.getCourses().size()).sum()));
+        planSummaryLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #0f172a;");
 
+        creditUsageLabel.setText(String.format(
+                "Total Credits: %.1f / %.0f cap  |  %d courses excluded due to credit cap",
+                result.totalPlannedCredits, MAX_TOTAL_CREDITS,
+                result.excludedCourses.size()));
+
+        // Term cards grid
         FlowPane grid = new FlowPane();
         grid.setHgap(16);
         grid.setVgap(16);
-        for (SemesterPlan plan : schedule) {
-            grid.getChildren().add(createTermCard(plan, maxCredits));
+        for (SemesterPlan plan : result.plannedTerms) {
+            grid.getChildren().add(createTermCard(plan));
         }
         termsContainer.getChildren().add(grid);
+
+        // Excluded courses
+        if (!result.excludedCourses.isEmpty()) {
+            for (Course c : result.excludedCourses) {
+                excludedContainer.getChildren().add(createExcludedRow(c));
+            }
+            showExcludedSection();
+        } else {
+            hideExcludedSection();
+        }
     }
 
-    private VBox createTermCard(SemesterPlan plan, double maxCredits) {
+    private VBox createTermCard(SemesterPlan plan) {
         VBox card = new VBox(8);
         card.getStyleClass().add("card-panel");
-        card.setPrefWidth(300);
+        card.setPrefWidth(310);
 
-        Label termHeader = new Label("Semester / Term " + plan.getTermNumber());
-        termHeader.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #3b82f6;");
+        // Header row
+        Label termLabel = new Label("Semester / Term " + plan.getTermNumber());
+        termLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #3b82f6;");
 
-        Label creditBadge = new Label(String.format("%.1f / %.1f Credits",
-                plan.getTotalCredits(), maxCredits));
-        creditBadge.setStyle("-fx-font-size: 11px; -fx-font-weight: 600; -fx-text-fill: #64748b;");
+        int coursesInTerm = plan.getCourses().size();
+        Label countBadge = new Label(coursesInTerm + " / " + COURSES_PER_TERM + " courses");
+        countBadge.setStyle("-fx-font-size: 11px; -fx-font-weight: 600; -fx-text-fill: #64748b;");
 
-        HBox top = new HBox(10, termHeader, new Region(), creditBadge);
+        Label creditBadge = new Label(String.format("%.1f cr", plan.getTotalCredits()));
+        creditBadge.setStyle("-fx-font-size: 11px; -fx-font-weight: 600; -fx-text-fill: #3b82f6;");
+
+        HBox top = new HBox(8, termLabel, new Region(), countBadge, creditBadge);
         HBox.setHgrow(top.getChildren().get(1), Priority.ALWAYS);
         top.setAlignment(Pos.CENTER_LEFT);
 
-        ProgressBar progress = new ProgressBar(plan.getTotalCredits() / maxCredits);
+        // Fill progress: courses added vs target 5
+        ProgressBar progress = new ProgressBar((double) coursesInTerm / COURSES_PER_TERM);
         progress.setMaxWidth(Double.MAX_VALUE);
-        progress.setStyle("-fx-accent: #3b82f6;");
+        String barColor = coursesInTerm < COURSES_PER_TERM ? "#f59e0b" : "#3b82f6";
+        progress.setStyle("-fx-accent: " + barColor + ";");
 
-        VBox coursesList = new VBox(5);
+        // Course rows
+        VBox courses = new VBox(5);
         for (Course c : plan.getCourses()) {
-            boolean prereqsMet = allPrereqsCompleted(c);
-            HBox row = new HBox(6);
-            row.setAlignment(Pos.CENTER_LEFT);
-            row.setPadding(new Insets(5, 8, 5, 8));
-            String bg = prereqsMet ? "#f1f5f9" : "#fff7ed";
-            row.setStyle("-fx-background-color: " + bg + "; -fx-background-radius: 6px; -fx-cursor: hand;");
-
-            Label codeLabel = new Label(c.getCode());
-            codeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
-            codeLabel.setMinWidth(Region.USE_PREF_SIZE);
-
-            Label titleLabel = new Label(c.getTitle());
-            titleLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
-            titleLabel.setMaxWidth(Double.MAX_VALUE);
-            HBox.setHgrow(titleLabel, Priority.ALWAYS);
-
-            Label creditLabel = new Label(c.getCredits() + " cr");
-            creditLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: 600;");
-            creditLabel.setMinWidth(Region.USE_PREF_SIZE);
-
-            row.getChildren().addAll(codeLabel, titleLabel, creditLabel);
-
-            if (!prereqsMet) {
-                Label warn = new Label("Prereq incomplete!");
-                warn.setStyle("-fx-font-size: 10px; -fx-text-fill: #f97316; -fx-font-weight: bold;");
-                warn.setMinWidth(Region.USE_PREF_SIZE);
-                row.getChildren().add(warn);
-                Tooltip.install(row, new Tooltip(
-                        "Warning: Not all prerequisites of " + c.getCode() +
-                        " are marked Completed. Verify before enrolling."));
-            }
-
-            row.setOnMouseClicked(e -> {
-                if (onCourseSelectedListener != null) onCourseSelectedListener.accept(c);
-            });
-            coursesList.getChildren().add(row);
+            courses.getChildren().add(createCourseRow(c));
         }
 
-        card.getChildren().addAll(top, progress, new Separator(), coursesList);
+        card.getChildren().addAll(top, progress, new Separator(), courses);
         return card;
     }
 
-    /** Returns true only if every direct prerequisite of this course is COMPLETED. */
+    private HBox createCourseRow(Course c) {
+        boolean prereqsMet = allPrereqsCompleted(c);
+
+        HBox row = new HBox(6);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(5, 8, 5, 8));
+        row.setStyle("-fx-background-color: " + (prereqsMet ? "#f1f5f9" : "#fff7ed") +
+                     "; -fx-background-radius: 6px; -fx-cursor: hand;");
+
+        Label codeLabel = new Label(c.getCode());
+        codeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
+        codeLabel.setMinWidth(Region.USE_PREF_SIZE);
+
+        Label titleLabel = new Label(c.getTitle());
+        titleLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
+        titleLabel.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(titleLabel, Priority.ALWAYS);
+
+        Label creditLabel = new Label(c.getCredits() + " cr");
+        creditLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: 600;");
+        creditLabel.setMinWidth(Region.USE_PREF_SIZE);
+
+        row.getChildren().addAll(codeLabel, titleLabel, creditLabel);
+
+        if (!prereqsMet) {
+            Label warn = new Label("Prereq incomplete!");
+            warn.setStyle("-fx-font-size: 10px; -fx-text-fill: #f97316; -fx-font-weight: bold;");
+            warn.setMinWidth(Region.USE_PREF_SIZE);
+            row.getChildren().add(warn);
+            Tooltip.install(row, new Tooltip(
+                    "Not all prerequisites of " + c.getCode() + " are Completed yet."));
+        }
+
+        row.setOnMouseClicked(e -> {
+            if (onCourseSelectedListener != null) onCourseSelectedListener.accept(c);
+        });
+        return row;
+    }
+
+    private HBox createExcludedRow(Course c) {
+        Label codeLabel = new Label(c.getCode());
+        codeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #92400e;");
+        codeLabel.setMinWidth(90);
+
+        Label titleLabel = new Label(c.getTitle());
+        titleLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #b45309;");
+        titleLabel.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(titleLabel, Priority.ALWAYS);
+
+        Label creditLabel = new Label(String.format("%.1f cr", c.getCredits()));
+        creditLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #92400e; -fx-font-weight: 600;");
+
+        Label reasonLabel = new Label("120 cr cap reached");
+        reasonLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #d97706; " +
+                "-fx-background-color: #fef3c7; -fx-background-radius: 10px; -fx-padding: 2px 7px;");
+
+        HBox row = new HBox(8, codeLabel, titleLabel, creditLabel, reasonLabel);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(4, 6, 4, 6));
+        row.setStyle("-fx-background-color: #fefce8; -fx-background-radius: 5px;");
+        row.setOnMouseClicked(e -> {
+            if (onCourseSelectedListener != null) onCourseSelectedListener.accept(c);
+        });
+        return row;
+    }
+
+    private void showError(String msg) {
+        termsContainer.getChildren().clear();
+        Label err = new Label("Error: " + msg);
+        err.getStyleClass().add("conflict-text");
+        termsContainer.getChildren().add(err);
+        planSummaryLabel.setText("Plan generation failed");
+        hideExcludedSection();
+    }
+
+    private void showExcludedSection() {
+        Object ref = excludedContainer.getUserData();
+        if (ref instanceof VBox section) {
+            section.setVisible(true);
+            section.setManaged(true);
+        }
+    }
+
+    private void hideExcludedSection() {
+        Object ref = excludedContainer.getUserData();
+        if (ref instanceof VBox section) {
+            section.setVisible(false);
+            section.setManaged(false);
+        }
+    }
+
     private boolean allPrereqsCompleted(Course c) {
         return graph.getDirectPrerequisites(c.getId()).stream()
                 .allMatch(Course::isCompleted);
@@ -256,29 +376,21 @@ public class SequencePlannerPane extends BorderPane {
 
     private void openEditPlanDialog() {
         if (lastHadCycle) {
-            Alert a = new Alert(Alert.AlertType.WARNING);
-            a.initOwner(primaryStage);
-            a.setTitle("Cannot Edit Plan");
-            a.setHeaderText("Circular dependency detected");
-            a.setContentText("Resolve circular prerequisites before editing the plan.");
-            a.showAndWait();
+            alert(Alert.AlertType.WARNING, "Cannot Edit Plan",
+                    "Resolve circular prerequisites before editing the plan.", null);
             return;
         }
-        if (lastPlan.isEmpty()) {
-            Alert a = new Alert(Alert.AlertType.INFORMATION);
-            a.initOwner(primaryStage);
-            a.setTitle("Nothing to Edit");
-            a.setHeaderText("All courses completed or no plan generated yet.");
-            a.showAndWait();
+        if (lastResult == null || lastResult.plannedTerms.isEmpty()) {
+            alert(Alert.AlertType.INFORMATION, "Nothing to Edit",
+                    "All courses completed or no plan generated yet.", null);
             return;
         }
 
-        // Build a mutable copy: termIndex -> list of course IDs
-        List<List<String>> termCourseIds = lastPlan.stream()
+        // Mutable copy: termIndex -> list of course IDs
+        List<List<String>> termIds = lastResult.plannedTerms.stream()
                 .map(p -> p.getCourses().stream().map(Course::getId).collect(Collectors.toList()))
                 .collect(Collectors.toList());
 
-        // ── Dialog ───────────────────────────────────────────────────────
         Stage dlg = new Stage();
         dlg.initOwner(primaryStage);
         dlg.initModality(Modality.APPLICATION_MODAL);
@@ -287,79 +399,69 @@ public class SequencePlannerPane extends BorderPane {
         VBox root = new VBox(14);
         root.setPadding(new Insets(20));
 
-        Label header = new Label("Edit Semester Plan");
-        header.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
+        Label hdr = new Label("Edit Semester Plan");
+        hdr.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
 
         Label hint = new Label(
-                "Select a course and use Move Up / Move Down to shift it to an earlier or later term.\n" +
-                "Courses with unmet prerequisites are highlighted in orange - you will be warned before saving.");
+                "Select a course and move it between terms.\n" +
+                "Each term should have at most " + COURSES_PER_TERM + " courses.\n" +
+                "Courses with unmet prerequisites are highlighted with [PREREQ INCOMPLETE].");
         hint.setWrapText(true);
         hint.setStyle("-fx-text-fill: #64748b; -fx-font-size: 12px;");
 
-        // Flat list view: each entry formatted as "Term N | CODE - Title"
         ListView<String> listView = new ListView<>();
-        listView.setPrefHeight(320);
-        refreshEditList(listView, termCourseIds);
+        listView.setPrefHeight(340);
+        refreshEditList(listView, termIds);
 
-        Label warningLabel = new Label();
-        warningLabel.setWrapText(true);
-        warningLabel.setStyle("-fx-text-fill: #f97316; -fx-font-weight: bold; -fx-font-size: 12px;");
+        Label warnLabel = new Label();
+        warnLabel.setWrapText(true);
+        warnLabel.setStyle("-fx-text-fill: #f97316; -fx-font-weight: bold; -fx-font-size: 12px;");
 
-        Button moveUpBtn = new Button("Move to Earlier Term");
-        moveUpBtn.getStyleClass().add("btn-secondary");
-        Button moveDownBtn = new Button("Move to Later Term");
-        moveDownBtn.getStyleClass().add("btn-secondary");
+        Button upBtn   = new Button("Move to Earlier Term");
+        upBtn.getStyleClass().add("btn-secondary");
+        Button downBtn = new Button("Move to Later Term");
+        downBtn.getStyleClass().add("btn-secondary");
 
-        moveUpBtn.setOnAction(e -> {
+        upBtn.setOnAction(e -> {
             int sel = listView.getSelectionModel().getSelectedIndex();
-            if (sel < 0) return;
-            int[] pos = flatIndexToTermCourse(termCourseIds, sel);
-            if (pos == null || pos[0] == 0) return;                 // already in term 1
-            String id = termCourseIds.get(pos[0]).remove(pos[1]);
-            termCourseIds.get(pos[0] - 1).add(id);
-            refreshEditList(listView, termCourseIds);
-            warningLabel.setText(checkPrereqWarnings(termCourseIds));
+            int[] pos = flatIndexToTermCourse(termIds, sel);
+            if (pos == null || pos[0] == 0) return;
+            String id = termIds.get(pos[0]).remove(pos[1]);
+            termIds.get(pos[0] - 1).add(id);
+            termIds.removeIf(List::isEmpty);
+            refreshEditList(listView, termIds);
+            warnLabel.setText(checkPrereqWarnings(termIds));
         });
 
-        moveDownBtn.setOnAction(e -> {
+        downBtn.setOnAction(e -> {
             int sel = listView.getSelectionModel().getSelectedIndex();
-            if (sel < 0) return;
-            int[] pos = flatIndexToTermCourse(termCourseIds, sel);
-            if (pos == null || pos[0] == termCourseIds.size() - 1) return;
-            // If last term has only 1 course, add a new term
-            if (pos[0] == termCourseIds.size() - 1) {
-                termCourseIds.add(new ArrayList<>());
-            } else if (termCourseIds.get(pos[0] + 1) == null) {
-                termCourseIds.add(new ArrayList<>());
-            }
-            String id = termCourseIds.get(pos[0]).remove(pos[1]);
-            // Ensure target term exists
-            while (termCourseIds.size() <= pos[0] + 1) termCourseIds.add(new ArrayList<>());
-            termCourseIds.get(pos[0] + 1).add(id);
-            // Remove empty terms
-            termCourseIds.removeIf(List::isEmpty);
-            refreshEditList(listView, termCourseIds);
-            warningLabel.setText(checkPrereqWarnings(termCourseIds));
+            int[] pos = flatIndexToTermCourse(termIds, sel);
+            if (pos == null) return;
+            if (pos[0] >= termIds.size() - 1) termIds.add(new ArrayList<>());
+            String id = termIds.get(pos[0]).remove(pos[1]);
+            termIds.get(pos[0] + 1).add(id);
+            termIds.removeIf(List::isEmpty);
+            refreshEditList(listView, termIds);
+            warnLabel.setText(checkPrereqWarnings(termIds));
         });
 
-        HBox moveBtns = new HBox(10, moveUpBtn, moveDownBtn);
+        HBox moveBtns = new HBox(10, upBtn, downBtn);
         moveBtns.setAlignment(Pos.CENTER_LEFT);
 
         Button saveBtn = new Button("Apply Plan");
         saveBtn.getStyleClass().add("btn-primary");
         saveBtn.setOnAction(e -> {
-            String warnings = checkPrereqWarnings(termCourseIds);
+            String warnings = checkPrereqWarnings(termIds);
             if (!warnings.isEmpty()) {
                 Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
                 confirm.initOwner(dlg);
                 confirm.setTitle("Prerequisites Not Fully Met");
                 confirm.setHeaderText("Some courses have incomplete prerequisites.");
-                confirm.setContentText(warnings + "\n\nDo you still want to apply this plan?");
+                confirm.setContentText(warnings + "\n\nApply anyway?");
                 Optional<ButtonType> result = confirm.showAndWait();
                 if (result.isEmpty() || result.get() != ButtonType.OK) return;
             }
-            // Rebuild SemesterPlan list from edited term/course mapping
-            List<SemesterPlan> edited = buildPlanFromIds(termCourseIds);
+            List<SemesterPlan> edited = buildPlanFromIds(termIds);
             applyComputedPlan(edited, false);
             dlg.close();
         });
@@ -371,42 +473,37 @@ public class SequencePlannerPane extends BorderPane {
         HBox btnRow = new HBox(10, saveBtn, cancelBtn);
         btnRow.setAlignment(Pos.CENTER_RIGHT);
 
-        root.getChildren().addAll(header, hint, listView, moveBtns, warningLabel, btnRow);
-
-        Scene scene = new Scene(root, 540, 520);
+        root.getChildren().addAll(hdr, hint, listView, moveBtns, warnLabel, btnRow);
+        Scene scene = new Scene(root, 560, 540);
         if (primaryStage.getScene() != null)
             scene.getStylesheets().addAll(primaryStage.getScene().getStylesheets());
         dlg.setScene(scene);
         dlg.showAndWait();
     }
 
-    // ─── Edit Plan Helpers ────────────────────────────────────────────────
+    // ─── Edit Plan helpers ────────────────────────────────────────────────
 
     private void refreshEditList(ListView<String> lv, List<List<String>> termIds) {
         lv.getItems().clear();
         for (int t = 0; t < termIds.size(); t++) {
             for (String id : termIds.get(t)) {
                 Course c = graph.getCourse(id);
-                String label = String.format("Term %d  |  %s - %s  (%.1f cr)",
+                String entry = String.format("Term %d  |  %s - %s  (%.1f cr)",
                         t + 1,
                         c != null ? c.getCode() : id,
                         c != null ? c.getTitle() : "?",
                         c != null ? c.getCredits() : 0.0);
-                if (c != null && !allPrereqsCompleted(c)) label += "  [PREREQ INCOMPLETE]";
-                lv.getItems().add(label);
+                if (c != null && !allPrereqsCompleted(c)) entry += "  [PREREQ INCOMPLETE]";
+                lv.getItems().add(entry);
             }
         }
     }
 
-    /** Converts a flat list index to [termIndex, courseIndexInTerm]. */
     private int[] flatIndexToTermCourse(List<List<String>> termIds, int flatIdx) {
         int counter = 0;
-        for (int t = 0; t < termIds.size(); t++) {
-            for (int c = 0; c < termIds.get(t).size(); c++) {
-                if (counter == flatIdx) return new int[]{t, c};
-                counter++;
-            }
-        }
+        for (int t = 0; t < termIds.size(); t++)
+            for (int c = 0; c < termIds.get(t).size(); c++)
+                if (counter++ == flatIdx) return new int[]{t, c};
         return null;
     }
 
@@ -417,7 +514,7 @@ public class SequencePlannerPane extends BorderPane {
                 Course c = graph.getCourse(id);
                 if (c != null && !allPrereqsCompleted(c)) {
                     sb.append("Term ").append(t + 1).append(": ").append(c.getCode())
-                      .append(" has prerequisites not yet marked Completed.\n");
+                      .append(" — prerequisites not yet Completed.\n");
                 }
             }
         }
@@ -428,12 +525,8 @@ public class SequencePlannerPane extends BorderPane {
         List<SemesterPlan> result = new ArrayList<>();
         for (int t = 0; t < termIds.size(); t++) {
             List<Course> courses = termIds.get(t).stream()
-                    .map(graph::getCourse)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            if (!courses.isEmpty()) {
-                result.add(new SemesterPlan(t + 1, courses));
-            }
+                    .map(graph::getCourse).filter(Objects::nonNull).collect(Collectors.toList());
+            if (!courses.isEmpty()) result.add(new SemesterPlan(t + 1, courses));
         }
         return result;
     }
@@ -442,40 +535,54 @@ public class SequencePlannerPane extends BorderPane {
 
     private void exportScheduleReport() {
         FileChooser fc = new FileChooser();
-        fc.setTitle("Export Course Sequence Schedule");
-        fc.setInitialFileName("Course_Sequence_Schedule.md");
+        fc.setTitle("Export Academic Schedule");
+        fc.setInitialFileName("Academic_Course_Schedule.md");
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Markdown Document", "*.md"));
 
         File file = fc.showSaveDialog(primaryStage);
         if (file == null) return;
 
         try (PrintWriter w = new PrintWriter(file)) {
-            w.println("# Course Prerequisite Sequence Roadmap");
+            w.println("# Academic Course Sequence Plan");
             w.println("Generated by PreRequix Planner");
-            w.println("Max Credit Hours Per Term: " + creditSlider.getValue());
+            w.println("Rules: " + COURSES_PER_TERM + " courses per term | Max " +
+                      (int) MAX_TOTAL_CREDITS + " total credits");
             w.println();
-            for (SemesterPlan plan : lastPlan) {
-                w.println("## Term " + plan.getTermNumber() +
-                          " (" + plan.getTotalCredits() + " Credits)");
-                for (Course c : plan.getCourses()) {
-                    w.println(String.format("- **%s**: %s (%.1f credits, %s)",
-                            c.getCode(), c.getTitle(), c.getCredits(), c.getDepartment()));
+            if (lastResult != null) {
+                for (SemesterPlan plan : lastResult.plannedTerms) {
+                    w.println("## Term " + plan.getTermNumber() +
+                              " (" + plan.getCourses().size() + " courses, " +
+                              plan.getTotalCredits() + " credits)");
+                    for (Course c : plan.getCourses()) {
+                        w.println(String.format("- **%s**: %s (%.1f credits, %s)",
+                                c.getCode(), c.getTitle(), c.getCredits(), c.getDepartment()));
+                    }
+                    w.println();
                 }
-                w.println();
+                if (!lastResult.excludedCourses.isEmpty()) {
+                    w.println("## Excluded from Plan (120 credit cap)");
+                    for (Course c : lastResult.excludedCourses) {
+                        w.println(String.format("- **%s**: %s (%.1f credits)",
+                                c.getCode(), c.getTitle(), c.getCredits()));
+                    }
+                }
             }
-            Alert ok = new Alert(Alert.AlertType.INFORMATION);
-            ok.initOwner(primaryStage);
-            ok.setTitle("Report Exported");
-            ok.setHeaderText("Schedule Report Saved Successfully!");
-            ok.setContentText("File saved to: " + file.getAbsolutePath());
-            ok.showAndWait();
+            alert(Alert.AlertType.INFORMATION, "Report Exported",
+                    "Schedule Report Saved Successfully!",
+                    "File saved to: " + file.getAbsolutePath());
         } catch (Exception ex) {
-            Alert err = new Alert(Alert.AlertType.ERROR);
-            err.initOwner(primaryStage);
-            err.setTitle("Export Error");
-            err.setHeaderText("Failed to export schedule report");
-            err.setContentText(ex.getMessage());
-            err.showAndWait();
+            alert(Alert.AlertType.ERROR, "Export Error", "Failed to export schedule report", ex.getMessage());
         }
+    }
+
+    // ─── Utility ─────────────────────────────────────────────────────────
+
+    private void alert(Alert.AlertType type, String title, String header, String content) {
+        Alert a = new Alert(type);
+        a.initOwner(primaryStage);
+        a.setTitle(title);
+        a.setHeaderText(header);
+        if (content != null) a.setContentText(content);
+        a.showAndWait();
     }
 }

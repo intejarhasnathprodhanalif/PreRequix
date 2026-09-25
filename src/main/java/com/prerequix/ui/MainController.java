@@ -305,8 +305,7 @@ public class MainController extends BorderPane {
         graphViewPane.renderGraph();
         courseCatalogPane.refreshTable();
 
-        double maxCredits = sequencePlannerPane.getCurrentMaxCredits();
-        GraphComputeTask task = new GraphComputeTask(graph, maxCredits);
+        GraphComputeTask task = new GraphComputeTask(graph);
 
         task.messageProperty().addListener((obs, o, msg) ->
                 Platform.runLater(() -> statusBarLabel.setText(msg)));
@@ -321,7 +320,7 @@ public class MainController extends BorderPane {
             totalCreditsVal.setText(String.format("%.1f", r.totalCredits));
 
             conflictAlertPane.applyComputedCycle(r.cyclePath);
-            sequencePlannerPane.applyComputedPlan(r.semesterPlan, r.hasCycle());
+            sequencePlannerPane.applyComputedPlan(r.academicPlan, r.hasCycle());
             statusBarLabel.setText("Ready.");
         }));
 

@@ -351,6 +351,123 @@ public class CourseGraph {
     }
 
     /**
+     * Generates a structured academic plan subject to two hard constraints:
+     * <ol>
+     *   <li>Each term contains <b>exactly {@code coursesPerTerm}</b> courses
+     *       (the last term may have fewer if the remaining eligible courses run out).</li>
+     *   <li>The running total of credits across ALL terms must <b>not exceed
+     *       {@code maxTotalCredits}</b>.  Any course that would push the total over
+     *       this limit is placed in the {@link AcademicPlanResult#excludedCourses} list
+     *       and omitted from the plan.</li>
+     * </ol>
+     *
+     * <p>Prerequisite ordering is always respected: a course is only eligible for a
+     * term after all its prerequisites have been placed in earlier terms (or are
+     * already completed).</p>
+     *
+     * @param coursesPerTerm  target number of courses per term (e.g. 5)
+     * @param maxTotalCredits hard cap on cumulative credits (e.g. 120)
+     * @return an {@link AcademicPlanResult} with the planned terms and any excluded courses
+     * @throws IllegalStateException if the graph contains a circular dependency
+     */
+    public synchronized AcademicPlanResult generateAcademicPlan(int coursesPerTerm,
+                                                                  double maxTotalCredits) {
+        if (!detectCycle().isEmpty()) {
+            throw new IllegalStateException(
+                    "Cannot generate academic plan: circular prerequisite dependencies detected!");
+        }
+
+        List<SemesterPlan> schedule        = new ArrayList<>();
+        List<Course>       excluded        = new ArrayList<>();
+
+        // Track which uncompleted courses still need to be scheduled
+        Map<String, Set<String>> remainingPrereqs = new HashMap<>();
+        Set<String>              completedIds     = new HashSet<>();
+
+        for (Course c : coursesMap.values()) {
+            if (c.isCompleted()) {
+                completedIds.add(c.getId());
+            } else {
+                remainingPrereqs.put(c.getId(), new HashSet<>(c.getPrerequisiteIds()));
+            }
+        }
+        // Strip already-completed prerequisites
+        for (Set<String> prereqs : remainingPrereqs.values()) {
+            prereqs.removeIf(completedIds::contains);
+        }
+
+        double totalCredits = 0.0;
+        int    termNumber   = 1;
+
+        while (!remainingPrereqs.isEmpty()) {
+            // Courses with no outstanding prerequisites — ready to take this term
+            List<Course> eligible = remainingPrereqs.entrySet().stream()
+                    .filter(e -> e.getValue().isEmpty())
+                    .map(e -> coursesMap.get(e.getKey()))
+                    .filter(Objects::nonNull)
+                    .sorted(Comparator.comparing(Course::getCode))
+                    .collect(Collectors.toList());
+
+            if (eligible.isEmpty()) break; // Shouldn't happen in a valid DAG
+
+            SemesterPlan   term        = new SemesterPlan(termNumber);
+            List<String>   addedThisTerm = new ArrayList<>();
+            List<Course>   skippedForCredit = new ArrayList<>();
+
+            for (Course course : eligible) {
+                if (addedThisTerm.size() >= coursesPerTerm) {
+                    // Term is full — the rest stay for a later term
+                    break;
+                }
+                double newTotal = totalCredits + course.getCredits();
+                if (newTotal > maxTotalCredits) {
+                    // Adding this course would exceed the credit cap — exclude it
+                    skippedForCredit.add(course);
+                } else {
+                    term.addCourse(course);
+                    addedThisTerm.add(course.getId());
+                    totalCredits = newTotal;
+                }
+            }
+
+            // All eligible courses exceeded the credit cap — plan is complete
+            if (addedThisTerm.isEmpty()) {
+                excluded.addAll(skippedForCredit);
+                // Mark remaining courses as excluded
+                remainingPrereqs.keySet().stream()
+                        .map(coursesMap::get)
+                        .filter(Objects::nonNull)
+                        .filter(c -> !skippedForCredit.contains(c))
+                        .forEach(excluded::add);
+                break;
+            }
+
+            // Remove scheduled courses and update downstream dependencies
+            for (String id : addedThisTerm) {
+                remainingPrereqs.remove(id);
+                completedIds.add(id);
+            }
+            for (Set<String> prereqs : remainingPrereqs.values()) {
+                prereqs.removeIf(addedThisTerm::contains);
+            }
+
+            schedule.add(term);
+            termNumber++;
+        }
+
+        // Any courses still in remainingPrereqs whose prerequisites were only just
+        // satisfied this term but never got scheduled are excluded (credit cap reached)
+        remainingPrereqs.keySet().stream()
+                .map(coursesMap::get)
+                .filter(Objects::nonNull)
+                .filter(c -> !excluded.contains(c))
+                .sorted(Comparator.comparing(Course::getCode))
+                .forEach(excluded::add);
+
+        return new AcademicPlanResult(schedule, excluded);
+    }
+
+    /**
      * Computes maximum prerequisite depth for visual graph tier placement.
      */
     public synchronized int getPrerequisiteDepth(String courseId) {
