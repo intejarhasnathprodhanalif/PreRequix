@@ -54,10 +54,10 @@ public class MainController extends BorderPane {
         this.storageManager = new CourseStorageManager();
 
         // Initialize Stats Labels
-        totalCoursesVal = new Label("…");
-        completedVal    = new Label("…");
-        availableVal    = new Label("…");
-        totalCreditsVal = new Label("…");
+        totalCoursesVal = new Label("â€¦");
+        completedVal    = new Label("â€¦");
+        availableVal    = new Label("â€¦");
+        totalCreditsVal = new Label("â€¦");
 
         // Conflict Warning Banner
         conflictAlertPane = new ConflictAlertPane();
@@ -71,9 +71,9 @@ public class MainController extends BorderPane {
         );
 
         // Sidebar Buttons
-        graphNavBtn    = new Button("🕸️ Graph Network");
-        catalogNavBtn  = new Button("📚 Course Catalog");
-        sequenceNavBtn = new Button("🗓️ Sequence Planner");
+        graphNavBtn    = new Button("ðŸ•¸ï¸ Graph Network");
+        catalogNavBtn  = new Button("ðŸ“š Course Catalog");
+        sequenceNavBtn = new Button("ðŸ—“ï¸ Sequence Planner");
 
         setupSidebarNavigation();
 
@@ -101,7 +101,7 @@ public class MainController extends BorderPane {
         initializeViews();
         showGraphView();
 
-        // ── Load data asynchronously on the I/O thread ───────────────────
+        // â”€â”€ Load data asynchronously on the I/O thread â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         LoadDataTask loadTask = new LoadDataTask(graph, storageManager);
         loadTask.messageProperty().addListener((obs, o, msg) ->
                 Platform.runLater(() -> statusBarLabel.setText(msg)));
@@ -123,7 +123,7 @@ public class MainController extends BorderPane {
         header.getStyleClass().add("header-bar");
         header.setAlignment(Pos.CENTER_LEFT);
 
-        Label logo = new Label("🎓 PreRequix");
+        Label logo = new Label("ðŸŽ“ PreRequix");
         logo.getStyleClass().add("app-title");
 
         Label tag = new Label("Course Prerequisite Planner");
@@ -143,9 +143,9 @@ public class MainController extends BorderPane {
         // Preset Curricula Menu
         ComboBox<String> presetCombo = new ComboBox<>();
         presetCombo.getItems().addAll(
-                "📂 Load CS Curriculum",
-                "⚡ Load EE Curriculum",
-                "📊 Load Business Analytics"
+                "ðŸ“‚ Load CS Curriculum",
+                "âš¡ Load EE Curriculum",
+                "ðŸ“Š Load Business Analytics"
         );
         presetCombo.setPromptText("Sample Curricula");
         presetCombo.getStyleClass().add("btn-secondary");
@@ -156,13 +156,13 @@ public class MainController extends BorderPane {
                 else if (selected.contains("EE")) storageManager.loadElectricalEngineeringPreset(graph);
                 else if (selected.contains("Business")) storageManager.loadBusinessAnalyticsPreset(graph);
 
-                saveState();
+                saveStateAsync();
                 refreshAllViews();
             }
         });
 
         // Theme Switcher Button
-        Button themeBtn = new Button("🌙 Dark");
+        Button themeBtn = new Button("ðŸŒ™ Dark");
         themeBtn.getStyleClass().add("btn-secondary");
         themeBtn.setOnAction(e -> {
             isDarkMode = !isDarkMode;
@@ -170,22 +170,22 @@ public class MainController extends BorderPane {
             if (scene != null) {
                 if (isDarkMode) {
                     scene.getRoot().getStyleClass().add("dark-theme");
-                    themeBtn.setText("☀️ Light");
+                    themeBtn.setText("â˜€ï¸ Light");
                 } else {
                     scene.getRoot().getStyleClass().remove("dark-theme");
-                    themeBtn.setText("🌙 Dark");
+                    themeBtn.setText("ðŸŒ™ Dark");
                 }
             }
         });
 
         // Add Course Quick Button
-        Button addCourseBtn = new Button("➕ New Course");
+        Button addCourseBtn = new Button("âž• New Course");
         addCourseBtn.getStyleClass().add("btn-primary");
         addCourseBtn.setOnAction(e -> {
             CourseDialog dialog = new CourseDialog(primaryStage, graph, null);
             dialog.showAndWait();
             if (dialog.isSaved()) {
-                saveState();
+                saveStateAsync();
                 refreshAllViews();
             }
         });
@@ -295,7 +295,7 @@ public class MainController extends BorderPane {
     }
 
     private void onCourseStatusChanged(Course course) {
-        saveState();
+        saveStateAsync();
         refreshAllViews();
     }
 
@@ -303,7 +303,7 @@ public class MainController extends BorderPane {
         CourseDialog dialog = new CourseDialog(primaryStage, graph, course);
         dialog.showAndWait();
         if (dialog.isSaved()) {
-            saveState();
+            saveStateAsync();
             refreshAllViews();
         }
     }
@@ -315,17 +315,17 @@ public class MainController extends BorderPane {
 
     /**
      * Triggers a full async refresh:
-     * 1. Re-renders the graph canvas (UI thread – fast).
+     * 1. Re-renders the graph canvas (UI thread â€“ fast).
      * 2. Runs {@link GraphComputeTask} off-thread to compute stats, cycle,
      *    and semester plan, then applies results back on the UI thread.
      * 3. Asks CourseCatalogPane to re-filter its table.
      */
     public void refreshAllViews() {
-        // ── UI-thread work (fast): redraw graph nodes ────────────────────
+        // â”€â”€ UI-thread work (fast): redraw graph nodes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         graphViewPane.renderGraph();
         courseCatalogPane.refreshTable();
 
-        // ── Background compute task ──────────────────────────────────────
+        // â”€â”€ Background compute task â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         double maxCredits = sequencePlannerPane.getCurrentMaxCredits();
         GraphComputeTask task = new GraphComputeTask(graph, maxCredits);
 
@@ -376,7 +376,7 @@ public class MainController extends BorderPane {
 
     /** Thin status bar shown at the bottom of the window. */
     private HBox createStatusBar() {
-        statusBarLabel = new Label("Initialising…");
+        statusBarLabel = new Label("Initialisingâ€¦");
         statusBarLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
 
         busySpinner = new ProgressIndicator();
