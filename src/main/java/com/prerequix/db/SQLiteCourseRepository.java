@@ -9,16 +9,19 @@ import java.util.*;
 /**
  * Concrete SQLite implementation of {@link AbstractCourseRepository}.
  *
- * <p>Uses the JDBC API with the Xerial SQLite driver.
+ * <p>
+ * Uses the JDBC API with the Xerial SQLite driver.
  * All SQL operations run through the transactional helper provided by the
  * abstract base class, ensuring atomicity for multi-step writes.
  *
- * <p><b>CRUD Mapping:</b>
+ * <p>
+ * <b>CRUD Mapping:</b>
  * <ul>
- *   <li>CREATE  – {@link #saveCourse(Course)} + {@link #savePrerequisites}</li>
- *   <li>READ    – {@link #getAllCourses()}, {@link #getCourse(String)}, {@link #getPrerequisites}</li>
- *   <li>UPDATE  – {@link #updateCourse(Course)}</li>
- *   <li>DELETE  – {@link #deleteCourse(String)}</li>
+ * <li>CREATE – {@link #saveCourse(Course)} + {@link #savePrerequisites}</li>
+ * <li>READ – {@link #getAllCourses()}, {@link #getCourse(String)},
+ * {@link #getPrerequisites}</li>
+ * <li>UPDATE – {@link #updateCourse(Course)}</li>
+ * <li>DELETE – {@link #deleteCourse(String)}</li>
  * </ul>
  */
 public class SQLiteCourseRepository extends AbstractCourseRepository {
@@ -72,8 +75,8 @@ public class SQLiteCourseRepository extends AbstractCourseRepository {
     public List<Course> getAllCourses() throws Exception {
         List<Course> courses = new ArrayList<>();
         try (Connection conn = getConnection();
-             Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SELECT * FROM courses ORDER BY code")) {
+                Statement st = conn.createStatement();
+                ResultSet rs = st.executeQuery("SELECT * FROM courses ORDER BY code")) {
             while (rs.next()) {
                 courses.add(mapRow(rs));
             }
@@ -90,8 +93,8 @@ public class SQLiteCourseRepository extends AbstractCourseRepository {
     public Course getCourse(String id) throws Exception {
         validateId(id);
         try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "SELECT * FROM courses WHERE id = ?")) {
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT * FROM courses WHERE id = ?")) {
             ps.setString(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -109,11 +112,12 @@ public class SQLiteCourseRepository extends AbstractCourseRepository {
     public Set<String> getPrerequisites(String courseId) throws Exception {
         Set<String> ids = new HashSet<>();
         try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "SELECT prerequisite_id FROM prerequisites WHERE course_id = ?")) {
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT prerequisite_id FROM prerequisites WHERE course_id = ?")) {
             ps.setString(1, courseId);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) ids.add(rs.getString(1));
+                while (rs.next())
+                    ids.add(rs.getString(1));
             }
         }
         return ids;
@@ -174,7 +178,8 @@ public class SQLiteCourseRepository extends AbstractCourseRepository {
     // ── Prerequisite helpers ──────────────────────────────────────────────
 
     /**
-     * Replaces all prerequisite rows for a course (atomic; uses existing connection).
+     * Replaces all prerequisite rows for a course (atomic; uses existing
+     * connection).
      */
     @Override
     public void savePrerequisites(String courseId, Set<String> prerequisiteIds) throws Exception {
@@ -190,8 +195,9 @@ public class SQLiteCourseRepository extends AbstractCourseRepository {
 
     /** Inner helper; re-uses an already-open connection. */
     private void savePrerequisitesInConn(Connection conn, String courseId,
-                                          Set<String> ids) throws SQLException {
-        if (ids == null || ids.isEmpty()) return;
+            Set<String> ids) throws SQLException {
+        if (ids == null || ids.isEmpty())
+            return;
         String sql = "INSERT OR IGNORE INTO prerequisites (course_id, prerequisite_id) VALUES (?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             for (String prereqId : ids) {
@@ -222,8 +228,7 @@ public class SQLiteCourseRepository extends AbstractCourseRepository {
                 rs.getString("title"),
                 rs.getString("description"),
                 rs.getDouble("credits"),
-                rs.getString("department")
-        );
+                rs.getString("department"));
         c.setStatus(parseStatus(rs.getString("status")));
         return c;
     }
