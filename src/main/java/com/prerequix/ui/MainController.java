@@ -16,7 +16,8 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 /**
- * Main application layout controller managing sidebar navigation, header status bar, views, and data persistence.
+ * Main application layout controller managing sidebar navigation, header
+ * status bar, views, and data persistence.
  */
 public class MainController extends BorderPane {
 
@@ -43,9 +44,9 @@ public class MainController extends BorderPane {
 
     private boolean isDarkMode = false;
 
-    /** Shown at the bottom of the window; updated by background tasks. */
+    /** Shown at the bottom; updated by background tasks. */
     private Label statusBarLabel;
-    /** Spinner that spins whenever a background task is running. */
+    /** Spins whenever a background task is running. */
     private ProgressIndicator busySpinner;
 
     public MainController(Stage primaryStage) {
@@ -54,15 +55,13 @@ public class MainController extends BorderPane {
         this.storageManager = new CourseStorageManager();
 
         // Initialize Stats Labels
-        totalCoursesVal = new Label("â€¦");
-        completedVal    = new Label("â€¦");
-        availableVal    = new Label("â€¦");
-        totalCreditsVal = new Label("â€¦");
+        totalCoursesVal = new Label("...");
+        completedVal    = new Label("...");
+        availableVal    = new Label("...");
+        totalCreditsVal = new Label("...");
 
-        // Conflict Warning Banner
         conflictAlertPane = new ConflictAlertPane();
 
-        // Right Inspector Pane
         courseDetailPane = new CourseDetailPane(
                 graph,
                 this::onCourseStatusChanged,
@@ -70,23 +69,16 @@ public class MainController extends BorderPane {
                 this::openEditCourseDialog
         );
 
-        // Sidebar Buttons
-        graphNavBtn    = new Button("ðŸ•¸ï¸ Graph Network");
-        catalogNavBtn  = new Button("ðŸ“š Course Catalog");
-        sequenceNavBtn = new Button("ðŸ—“ï¸ Sequence Planner");
+        graphNavBtn    = new Button("Graph Network");
+        catalogNavBtn  = new Button("Course Catalog");
+        sequenceNavBtn = new Button("Sequence Planner");
 
         setupSidebarNavigation();
 
-        // Top Header
         setTop(createHeaderBar());
-
-        // Left Sidebar
         setLeft(createSidebar());
-
-        // Right Detail Drawer
         setRight(courseDetailPane);
 
-        // Center Views Stack
         centerContentStack = new StackPane();
         centerContentStack.setMaxWidth(Double.MAX_VALUE);
         centerContentStack.setMaxHeight(Double.MAX_VALUE);
@@ -101,7 +93,7 @@ public class MainController extends BorderPane {
         initializeViews();
         showGraphView();
 
-        // â”€â”€ Load data asynchronously on the I/O thread â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Load data asynchronously on the I/O thread
         LoadDataTask loadTask = new LoadDataTask(graph, storageManager);
         loadTask.messageProperty().addListener((obs, o, msg) ->
                 Platform.runLater(() -> statusBarLabel.setText(msg)));
@@ -112,7 +104,7 @@ public class MainController extends BorderPane {
         loadTask.setOnFailed(e -> Platform.runLater(() -> {
             busySpinner.setVisible(false);
             statusBarLabel.setText("Load failed: " + loadTask.getException().getMessage());
-            refreshAllViews();   // show whatever is in the graph already
+            refreshAllViews();
         }));
         busySpinner.setVisible(true);
         AppExecutor.getInstance().ioExecutor().submit(loadTask);
@@ -123,7 +115,7 @@ public class MainController extends BorderPane {
         header.getStyleClass().add("header-bar");
         header.setAlignment(Pos.CENTER_LEFT);
 
-        Label logo = new Label("ðŸŽ“ PreRequix");
+        Label logo = new Label("PreRequix");
         logo.getStyleClass().add("app-title");
 
         Label tag = new Label("Course Prerequisite Planner");
@@ -131,38 +123,34 @@ public class MainController extends BorderPane {
 
         VBox brandBox = new VBox(2, logo, tag);
 
-        // Stats Badges
         HBox statsBox = new HBox(10,
                 createStatPill("TOTAL COURSES", totalCoursesVal),
-                createStatPill("COMPLETED", completedVal),
+                createStatPill("COMPLETED",     completedVal),
                 createStatPill("AVAILABLE NOW", availableVal),
                 createStatPill("TOTAL CREDITS", totalCreditsVal)
         );
         statsBox.setAlignment(Pos.CENTER_LEFT);
 
-        // Preset Curricula Menu
         ComboBox<String> presetCombo = new ComboBox<>();
         presetCombo.getItems().addAll(
-                "ðŸ“‚ Load CS Curriculum",
-                "âš¡ Load EE Curriculum",
-                "ðŸ“Š Load Business Analytics"
+                "Load CS Curriculum",
+                "Load EE Curriculum",
+                "Load Business Analytics"
         );
         presetCombo.setPromptText("Sample Curricula");
         presetCombo.getStyleClass().add("btn-secondary");
         presetCombo.setOnAction(e -> {
             String selected = presetCombo.getValue();
             if (selected != null) {
-                if (selected.contains("CS")) storageManager.loadComputerSciencePreset(graph);
-                else if (selected.contains("EE")) storageManager.loadElectricalEngineeringPreset(graph);
+                if (selected.contains("CS"))       storageManager.loadComputerSciencePreset(graph);
+                else if (selected.contains("EE"))  storageManager.loadElectricalEngineeringPreset(graph);
                 else if (selected.contains("Business")) storageManager.loadBusinessAnalyticsPreset(graph);
-
                 saveStateAsync();
                 refreshAllViews();
             }
         });
 
-        // Theme Switcher Button
-        Button themeBtn = new Button("ðŸŒ™ Dark");
+        Button themeBtn = new Button("Dark Mode");
         themeBtn.getStyleClass().add("btn-secondary");
         themeBtn.setOnAction(e -> {
             isDarkMode = !isDarkMode;
@@ -170,16 +158,15 @@ public class MainController extends BorderPane {
             if (scene != null) {
                 if (isDarkMode) {
                     scene.getRoot().getStyleClass().add("dark-theme");
-                    themeBtn.setText("â˜€ï¸ Light");
+                    themeBtn.setText("Light Mode");
                 } else {
                     scene.getRoot().getStyleClass().remove("dark-theme");
-                    themeBtn.setText("ðŸŒ™ Dark");
+                    themeBtn.setText("Dark Mode");
                 }
             }
         });
 
-        // Add Course Quick Button
-        Button addCourseBtn = new Button("âž• New Course");
+        Button addCourseBtn = new Button("+ New Course");
         addCourseBtn.getStyleClass().add("btn-primary");
         addCourseBtn.setOnAction(e -> {
             CourseDialog dialog = new CourseDialog(primaryStage, graph, null);
@@ -202,9 +189,7 @@ public class MainController extends BorderPane {
     private VBox createStatPill(String title, Label valLabel) {
         Label titleLbl = new Label(title);
         titleLbl.getStyleClass().add("stat-label");
-
         valLabel.getStyleClass().add("stat-value");
-
         VBox box = new VBox(2, titleLbl, valLabel);
         box.getStyleClass().add("stat-box");
         return box;
@@ -231,44 +216,42 @@ public class MainController extends BorderPane {
         return sidebar;
     }
 
-    private void setupSidebarNavigation() {
-    }
+    private void setupSidebarNavigation() {}
 
     private void initializeViews() {
-        graphViewPane = new GraphViewPane(graph, this::onCourseSelectedFromView);
-        courseCatalogPane = new CourseCatalogPane(primaryStage, graph, this::onCourseSelectedFromView, this::onGraphDataUpdated);
-        sequencePlannerPane = new SequencePlannerPane(primaryStage, graph, this::onCourseSelectedFromView);
+        graphViewPane      = new GraphViewPane(graph, this::onCourseSelectedFromView);
+        courseCatalogPane  = new CourseCatalogPane(primaryStage, graph,
+                                 this::onCourseSelectedFromView, this::onGraphDataUpdated);
+        sequencePlannerPane = new SequencePlannerPane(primaryStage, graph,
+                                 this::onCourseSelectedFromView);
 
-        // Start with all hidden; showGraphView() will reveal the correct one
-        graphViewPane.setVisible(false);     graphViewPane.setManaged(false);
-        courseCatalogPane.setVisible(false); courseCatalogPane.setManaged(false);
+        graphViewPane.setVisible(false);      graphViewPane.setManaged(false);
+        courseCatalogPane.setVisible(false);  courseCatalogPane.setManaged(false);
         sequencePlannerPane.setVisible(false); sequencePlannerPane.setManaged(false);
 
-        centerContentStack.getChildren().addAll(graphViewPane, courseCatalogPane, sequencePlannerPane);
+        centerContentStack.getChildren().addAll(
+                graphViewPane, courseCatalogPane, sequencePlannerPane);
     }
 
-    /** Show only graphViewPane, hide the other two. */
     private void showGraphView() {
         setNavActive(graphNavBtn);
         setOnlyVisible(graphViewPane);
         graphViewPane.renderGraph();
     }
 
-    /** Show only courseCatalogPane, hide the other two. */
     private void showCatalogView() {
         setNavActive(catalogNavBtn);
         setOnlyVisible(courseCatalogPane);
         courseCatalogPane.refreshTable();
     }
 
-    /** Show only sequencePlannerPane, hide the other two. */
     private void showSequenceView() {
         setNavActive(sequenceNavBtn);
         setOnlyVisible(sequencePlannerPane);
         sequencePlannerPane.generateRoadmap();
     }
 
-    /** Make exactly one child of centerContentStack visible; hide+unmanage all others. */
+    /** Make exactly one child visible; hide and unmanage all others. */
     private void setOnlyVisible(javafx.scene.Node target) {
         for (javafx.scene.Node child : centerContentStack.getChildren()) {
             boolean show = child == target;
@@ -281,7 +264,6 @@ public class MainController extends BorderPane {
         graphNavBtn.getStyleClass().remove("sidebar-btn-active");
         catalogNavBtn.getStyleClass().remove("sidebar-btn-active");
         sequenceNavBtn.getStyleClass().remove("sidebar-btn-active");
-
         activeBtn.getStyleClass().add("sidebar-btn-active");
     }
 
@@ -314,18 +296,15 @@ public class MainController extends BorderPane {
     }
 
     /**
-     * Triggers a full async refresh:
-     * 1. Re-renders the graph canvas (UI thread â€“ fast).
-     * 2. Runs {@link GraphComputeTask} off-thread to compute stats, cycle,
-     *    and semester plan, then applies results back on the UI thread.
-     * 3. Asks CourseCatalogPane to re-filter its table.
+     * Full async refresh:
+     * 1. Redraws the graph canvas on the UI thread (fast).
+     * 2. Runs GraphComputeTask off-thread for stats + cycle + plan.
+     * 3. Asks CourseCatalogPane to re-filter its table (async).
      */
     public void refreshAllViews() {
-        // â”€â”€ UI-thread work (fast): redraw graph nodes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         graphViewPane.renderGraph();
         courseCatalogPane.refreshTable();
 
-        // â”€â”€ Background compute task â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         double maxCredits = sequencePlannerPane.getCurrentMaxCredits();
         GraphComputeTask task = new GraphComputeTask(graph, maxCredits);
 
@@ -336,18 +315,13 @@ public class MainController extends BorderPane {
             busySpinner.setVisible(false);
             GraphComputeTask.Result r = task.getValue();
 
-            // Update header stats
             totalCoursesVal.setText(String.valueOf(r.total));
             completedVal.setText(String.valueOf(r.completed));
             availableVal.setText(String.valueOf(r.available));
             totalCreditsVal.setText(String.format("%.1f", r.totalCredits));
 
-            // Update conflict banner
             conflictAlertPane.applyComputedCycle(r.cyclePath);
-
-            // Push semester plan into the planner view
             sequencePlannerPane.applyComputedPlan(r.semesterPlan, r.hasCycle());
-
             statusBarLabel.setText("Ready.");
         }));
 
@@ -360,10 +334,7 @@ public class MainController extends BorderPane {
         AppExecutor.getInstance().computePool().submit(task);
     }
 
-    /**
-     * Saves the graph asynchronously on the dedicated I/O thread so the
-     * UI never freezes during a file write.
-     */
+    /** Saves the graph asynchronously on the dedicated I/O thread. */
     private void saveStateAsync() {
         SaveDataTask saveTask = new SaveDataTask(graph, storageManager);
         saveTask.messageProperty().addListener((obs, o, msg) ->
@@ -374,9 +345,9 @@ public class MainController extends BorderPane {
         AppExecutor.getInstance().ioExecutor().submit(saveTask);
     }
 
-    /** Thin status bar shown at the bottom of the window. */
+    /** Thin status bar at the bottom of the window. */
     private HBox createStatusBar() {
-        statusBarLabel = new Label("Initialisingâ€¦");
+        statusBarLabel = new Label("Initialising...");
         statusBarLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
 
         busySpinner = new ProgressIndicator();
