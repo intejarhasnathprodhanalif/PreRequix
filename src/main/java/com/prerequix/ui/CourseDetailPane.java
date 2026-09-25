@@ -1,4 +1,4 @@
-﻿package com.prerequix.ui;
+package com.prerequix.ui;
 
 import com.prerequix.model.Course;
 import com.prerequix.model.CourseGraph;
