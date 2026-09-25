@@ -1,15 +1,15 @@
-﻿/* PreRequix - JavaFX Compatible Stylesheet                          */
+/* PreRequix - JavaFX Compatible Stylesheet                          */
 /* NOTE: JavaFX does NOT support CSS custom properties (var(--x)).   */
 /* All colours are hardcoded below.                                  */
 
-/* â”€â”€ Root â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Root ────────────────────────────────────────────────────────── */
 .root {
     -fx-font-family: "Segoe UI";
     -fx-font-size: 13px;
     -fx-background-color: #f8fafc;
 }
 
-/* â”€â”€ App Title â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── App Title ──────────────────────────────────────────────────── */
 .app-title {
     -fx-font-size: 17px;
     -fx-font-weight: bold;
@@ -21,7 +21,7 @@
     -fx-text-fill: #64748b;
 }
 
-/* â”€â”€ Header Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Header Bar ─────────────────────────────────────────────────── */
 .header-bar {
     -fx-background-color: #ffffff;
     -fx-border-color: transparent transparent #e2e8f0 transparent;
@@ -29,7 +29,7 @@
     -fx-padding: 10px 20px;
 }
 
-/* â”€â”€ Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Sidebar ─────────────────────────────────────────────────────── */
 .sidebar {
     -fx-background-color: #ffffff;
     -fx-border-color: transparent #e2e8f0 transparent transparent;
@@ -65,7 +65,7 @@
     -fx-text-fill: #ffffff;
 }
 
-/* â”€â”€ Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Cards ───────────────────────────────────────────────────────── */
 .card-panel {
     -fx-background-color: #ffffff;
     -fx-border-color: #e2e8f0;
@@ -82,7 +82,7 @@
     -fx-text-fill: #0f172a;
 }
 
-/* â”€â”€ Stat Boxes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Stat Boxes ─────────────────────────────────────────────────── */
 .stat-box {
     -fx-background-color: #f8fafc;
     -fx-border-color: #e2e8f0;
@@ -104,7 +104,7 @@
     -fx-text-fill: #0f172a;
 }
 
-/* â”€â”€ Buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Buttons ─────────────────────────────────────────────────────── */
 .btn-primary {
     -fx-background-color: #3b82f6;
     -fx-text-fill: #ffffff;
@@ -150,7 +150,7 @@
     -fx-background-color: #fee2e2;
 }
 
-/* â”€â”€ Search Field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Search Field ──────────────────────────────────────────────── */
 .search-field {
     -fx-background-color: #ffffff;
     -fx-border-color: #e2e8f0;
@@ -165,7 +165,7 @@
     -fx-border-color: #3b82f6;
 }
 
-/* â”€â”€ Status Pills â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Status Pills ──────────────────────────────────────────────── */
 .status-pill {
     -fx-padding: 3px 9px;
     -fx-background-radius: 11px;
@@ -188,7 +188,7 @@
     -fx-text-fill: #64748b;
 }
 
-/* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Table ───────────────────────────────────────────────────────── */
 .table-view {
     -fx-background-color: #ffffff;
     -fx-border-color: #e2e8f0;
@@ -225,7 +225,7 @@
     -fx-background-color: #dbeafe;
 }
 
-/* â”€â”€ Conflict Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Conflict Banner ─────────────────────────────────────────────── */
 .conflict-banner {
     -fx-background-color: #fef2f2;
     -fx-border-color: #ef4444;
@@ -241,7 +241,7 @@
     -fx-font-size: 12px;
 }
 
-/* â”€â”€ Scroll Pane â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Scroll Pane ─────────────────────────────────────────────────── */
 .scroll-pane {
     -fx-background-color: transparent;
     -fx-background: transparent;
@@ -249,4 +249,265 @@
 
 .scroll-pane .viewport {
     -fx-background-color: transparent;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DARK THEME OVERRIDES
+   Applied when .dark-theme class is added to scene root.
+   Every surface, text, and border colour is explicitly overridden
+   so that no light-mode white bleeds through.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Root background ─────────────────────────────────────────────── */
+.dark-theme {
+    -fx-background-color: #0f172a;
+    -fx-text-fill: #e2e8f0;
+}
+.dark-theme .root {
+    -fx-background-color: #0f172a;
+    -fx-text-fill: #e2e8f0;
+}
+
+/* ── Labels & text ───────────────────────────────────────────────── */
+.dark-theme .label {
+    -fx-text-fill: #e2e8f0;
+}
+.dark-theme .muted-text {
+    -fx-text-fill: #94a3b8;
+}
+.dark-theme .app-title {
+    -fx-text-fill: #f1f5f9;
+}
+.dark-theme .section-title {
+    -fx-text-fill: #f1f5f9;
+}
+.dark-theme .stat-label {
+    -fx-text-fill: #94a3b8;
+}
+.dark-theme .stat-value {
+    -fx-text-fill: #f1f5f9;
+}
+
+/* ── Header Bar ─────────────────────────────────────────────────── */
+.dark-theme .header-bar {
+    -fx-background-color: #1e293b;
+    -fx-border-color: transparent transparent #334155 transparent;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────── */
+.dark-theme .sidebar {
+    -fx-background-color: #1e293b;
+    -fx-border-color: transparent #334155 transparent transparent;
+}
+.dark-theme .sidebar-btn {
+    -fx-text-fill: #94a3b8;
+}
+.dark-theme .sidebar-btn:hover {
+    -fx-background-color: #1d3a5f;
+    -fx-text-fill: #60a5fa;
+}
+
+/* ── Cards ───────────────────────────────────────────────────────── */
+.dark-theme .card-panel {
+    -fx-background-color: #1e293b;
+    -fx-border-color: #334155;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 8, 0, 0, 2);
+}
+
+/* ── Stat boxes ─────────────────────────────────────────────────── */
+.dark-theme .stat-box {
+    -fx-background-color: #0f172a;
+    -fx-border-color: #334155;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────── */
+.dark-theme .btn-secondary {
+    -fx-background-color: #1e293b;
+    -fx-border-color: #475569;
+    -fx-text-fill: #e2e8f0;
+}
+.dark-theme .btn-secondary:hover {
+    -fx-background-color: #1d3a5f;
+    -fx-text-fill: #60a5fa;
+}
+
+/* ── Text fields / text areas ──────────────────────────────────── */
+.dark-theme .text-field,
+.dark-theme .text-area,
+.dark-theme .search-field {
+    -fx-background-color: #0f172a;
+    -fx-text-fill: #e2e8f0;
+    -fx-border-color: #334155;
+    -fx-prompt-text-fill: #64748b;
+}
+.dark-theme .text-field:focused,
+.dark-theme .text-area:focused,
+.dark-theme .search-field:focused {
+    -fx-border-color: #3b82f6;
+}
+.dark-theme .text-area .content {
+    -fx-background-color: #0f172a;
+}
+
+/* ── ComboBox / Spinner ─────────────────────────────────────────── */
+.dark-theme .combo-box,
+.dark-theme .combo-box .list-cell {
+    -fx-background-color: #1e293b;
+    -fx-text-fill: #e2e8f0;
+    -fx-border-color: #334155;
+}
+.dark-theme .combo-box-popup .list-view {
+    -fx-background-color: #1e293b;
+    -fx-border-color: #334155;
+}
+.dark-theme .combo-box-popup .list-cell:hover {
+    -fx-background-color: #1d3a5f;
+}
+.dark-theme .spinner {
+    -fx-background-color: #1e293b;
+}
+.dark-theme .spinner .text-field {
+    -fx-background-color: #0f172a;
+    -fx-text-fill: #e2e8f0;
+    -fx-border-color: #334155;
+}
+.dark-theme .spinner .increment-arrow-button,
+.dark-theme .spinner .decrement-arrow-button {
+    -fx-background-color: #1e293b;
+}
+
+/* ── Table ───────────────────────────────────────────────────────── */
+.dark-theme .table-view {
+    -fx-background-color: #1e293b;
+    -fx-border-color: #334155;
+}
+.dark-theme .table-view .column-header-background {
+    -fx-background-color: #0f172a;
+    -fx-border-color: transparent transparent #334155 transparent;
+}
+.dark-theme .table-view .column-header {
+    -fx-text-fill: #94a3b8;
+}
+.dark-theme .table-row-cell {
+    -fx-background-color: #1e293b;
+    -fx-border-color: transparent transparent #263147 transparent;
+    -fx-text-fill: #e2e8f0;
+}
+.dark-theme .table-row-cell:hover {
+    -fx-background-color: #1d3a5f;
+}
+.dark-theme .table-row-cell:selected {
+    -fx-background-color: #1d4ed8;
+}
+.dark-theme .table-cell {
+    -fx-text-fill: #e2e8f0;
+}
+
+/* ── Status pills (dark safe) ───────────────────────────────────── */
+.dark-theme .status-completed {
+    -fx-background-color: #064e3b;
+    -fx-text-fill: #34d399;
+}
+.dark-theme .status-in-progress {
+    -fx-background-color: #451a03;
+    -fx-text-fill: #fbbf24;
+}
+.dark-theme .status-uncompleted {
+    -fx-background-color: #1e293b;
+    -fx-text-fill: #94a3b8;
+}
+
+/* ── Scroll pane (dark) ─────────────────────────────────────────── */
+.dark-theme .scroll-pane,
+.dark-theme .scroll-pane > .viewport {
+    -fx-background-color: #0f172a;
+    -fx-background: #0f172a;
+}
+.dark-theme .scroll-bar {
+    -fx-background-color: #1e293b;
+}
+.dark-theme .scroll-bar .thumb {
+    -fx-background-color: #475569;
+    -fx-background-radius: 4px;
+}
+
+/* ── ListView (edit dialog) ─────────────────────────────────────── */
+.dark-theme .list-view {
+    -fx-background-color: #1e293b;
+    -fx-border-color: #334155;
+}
+.dark-theme .list-cell {
+    -fx-background-color: #1e293b;
+    -fx-text-fill: #e2e8f0;
+}
+.dark-theme .list-cell:hover {
+    -fx-background-color: #1d3a5f;
+}
+.dark-theme .list-cell:selected {
+    -fx-background-color: #1d4ed8;
+    -fx-text-fill: #ffffff;
+}
+
+/* ── Separator ───────────────────────────────────────────────────── */
+.dark-theme .separator .line {
+    -fx-border-color: #334155;
+}
+
+/* ── Slider ──────────────────────────────────────────────────────── */
+.dark-theme .slider .track {
+    -fx-background-color: #334155;
+}
+.dark-theme .slider .thumb {
+    -fx-background-color: #3b82f6;
+}
+.dark-theme .slider .axis {
+    -fx-tick-label-fill: #94a3b8;
+}
+
+/* ── Progress bar (term cards) ───────────────────────────────────── */
+.dark-theme .progress-bar {
+    -fx-background-color: #334155;
+    -fx-background-radius: 4px;
+}
+.dark-theme .progress-bar .bar {
+    -fx-background-color: #3b82f6;
+    -fx-background-radius: 4px;
+}
+
+/* ── Radio buttons ───────────────────────────────────────────────── */
+.dark-theme .radio-button {
+    -fx-text-fill: #e2e8f0;
+}
+.dark-theme .radio-button .radio {
+    -fx-background-color: #1e293b;
+    -fx-border-color: #475569;
+}
+.dark-theme .radio-button:selected .radio {
+    -fx-background-color: #3b82f6;
+    -fx-border-color: #3b82f6;
+}
+
+/* ── Check boxes ─────────────────────────────────────────────────── */
+.dark-theme .check-box {
+    -fx-text-fill: #e2e8f0;
+}
+.dark-theme .check-box .box {
+    -fx-background-color: #1e293b;
+    -fx-border-color: #475569;
+}
+.dark-theme .check-box:selected .box {
+    -fx-background-color: #3b82f6;
+    -fx-border-color: #3b82f6;
+}
+
+/* ── Status bar (bottom) ─────────────────────────────────────────── */
+.dark-theme HBox {
+    /* Only targets the status bar HBox via direct style -
+       actual colours set inline, so we just ensure background is dark */
+}
+
+/* ── Conflict banner ─────────────────────────────────────────────── */
+.dark-theme .conflict-banner {
+    -fx-background-color: #3b0a0a;
+    -fx-border-color: #ef4444;
 }

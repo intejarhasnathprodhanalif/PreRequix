@@ -7,8 +7,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -53,37 +55,48 @@ public class CourseDialog extends Stage {
         grid.setHgap(12);
         grid.setVgap(12);
 
+        // Fixed-width label column, stretchy field column
+        ColumnConstraints labelCol = new ColumnConstraints(120);
+        ColumnConstraints fieldCol = new ColumnConstraints();
+        fieldCol.setHgrow(Priority.ALWAYS);
+        grid.getColumnConstraints().addAll(labelCol, fieldCol);
+
         codeField = new TextField(existingCourse != null ? existingCourse.getCode() : "");
         codeField.setPromptText("e.g. CS 101");
-        grid.add(new Label("Course Code:"), 0, 0);
+        codeField.setMaxWidth(Double.MAX_VALUE);
+        grid.add(makeLabel("Course Code:"), 0, 0);
         grid.add(codeField, 1, 0);
 
         titleField = new TextField(existingCourse != null ? existingCourse.getTitle() : "");
         titleField.setPromptText("e.g. Intro to Computer Science");
-        grid.add(new Label("Course Title:"), 0, 1);
+        titleField.setMaxWidth(Double.MAX_VALUE);
+        grid.add(makeLabel("Course Title:"), 0, 1);
         grid.add(titleField, 1, 1);
 
         double initialCredits = existingCourse != null ? existingCourse.getCredits() : 3.0;
         creditsSpinner = new Spinner<>(0.5, 12.0, initialCredits, 0.5);
         creditsSpinner.setEditable(true);
-        grid.add(new Label("Credits:"), 0, 2);
+        creditsSpinner.setMaxWidth(Double.MAX_VALUE);
+        grid.add(makeLabel("Credits:"), 0, 2);
         grid.add(creditsSpinner, 1, 2);
 
         deptField = new TextField(existingCourse != null ? existingCourse.getDepartment() : "Computer Science");
         deptField.setPromptText("e.g. Computer Science");
-        grid.add(new Label("Department:"), 0, 3);
+        deptField.setMaxWidth(Double.MAX_VALUE);
+        grid.add(makeLabel("Department:"), 0, 3);
         grid.add(deptField, 1, 3);
 
         statusCombo = new ComboBox<>();
         statusCombo.getItems().setAll(CourseStatus.values());
         statusCombo.setValue(existingCourse != null ? existingCourse.getStatus() : CourseStatus.UNCOMPLETED);
-        grid.add(new Label("Status:"), 0, 4);
+        statusCombo.setMaxWidth(Double.MAX_VALUE);
+        grid.add(makeLabel("Status:"), 0, 4);
         grid.add(statusCombo, 1, 4);
 
         descArea = new TextArea(existingCourse != null ? existingCourse.getDescription() : "");
         descArea.setPromptText("Brief description of syllabus and course outcomes...");
         descArea.setPrefRowCount(3);
-        grid.add(new Label("Description:"), 0, 5);
+        grid.add(makeLabel("Description:"), 0, 5);
         grid.add(descArea, 1, 5);
 
         // Prerequisite Multi-select Checklist
@@ -129,11 +142,20 @@ public class CourseDialog extends Stage {
 
         root.getChildren().addAll(header, grid, prereqLabel, prereqListView, warningLabel, btnRow);
 
-        Scene scene = new Scene(root, 480, 580);
+        Scene scene = new Scene(root, 520, 600);
         if (owner.getScene() != null && owner.getScene().getStylesheets() != null) {
             scene.getStylesheets().addAll(owner.getScene().getStylesheets());
         }
         setScene(scene);
+    }
+
+    /** Creates a right-aligned bold label for grid rows. */
+    private static Label makeLabel(String text) {
+        Label lbl = new Label(text);
+        lbl.setStyle("-fx-font-weight: 600; -fx-text-fill: #374151;");
+        lbl.setMaxWidth(Double.MAX_VALUE);
+        lbl.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+        return lbl;
     }
 
     private Set<String> getSelectedPrerequisiteIds() {

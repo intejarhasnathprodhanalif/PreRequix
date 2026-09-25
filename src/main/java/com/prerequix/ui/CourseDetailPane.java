@@ -81,19 +81,19 @@ public class CourseDetailPane extends VBox {
         descLabel.setStyle("-fx-font-size: 12px;");
 
         // Action Buttons
-        markCompletedBtn = new Button("✓ Mark Completed");
+        markCompletedBtn = new Button("Mark Completed");
         markCompletedBtn.getStyleClass().add("btn-primary");
         markCompletedBtn.setOnAction(e -> changeStatus(CourseStatus.COMPLETED));
 
-        markInProgressBtn = new Button("⏳ In Progress");
+        markInProgressBtn = new Button("In Progress");
         markInProgressBtn.getStyleClass().add("btn-secondary");
         markInProgressBtn.setOnAction(e -> changeStatus(CourseStatus.IN_PROGRESS));
 
-        markUncompletedBtn = new Button("↺ Reset");
+        markUncompletedBtn = new Button("Reset");
         markUncompletedBtn.getStyleClass().add("btn-secondary");
         markUncompletedBtn.setOnAction(e -> changeStatus(CourseStatus.UNCOMPLETED));
 
-        editCourseBtn = new Button("✏️ Edit");
+        editCourseBtn = new Button("Edit");
         editCourseBtn.getStyleClass().add("btn-secondary");
         editCourseBtn.setOnAction(e -> {
             if (currentCourse != null && onEditCourseListener != null) {
@@ -204,9 +204,11 @@ public class CourseDetailPane extends VBox {
     private HBox createCourseListItem(Course course) {
         Label code = new Label(course.getCode());
         code.setStyle("-fx-font-weight: 600; -fx-font-size: 12px;");
+        code.setMinWidth(70);
 
         Label name = new Label(course.getTitle());
         name.getStyleClass().add("muted-text");
+        name.setMaxWidth(Double.MAX_VALUE);
 
         Label pill = new Label(course.getStatus().getDisplayName());
         pill.getStyleClass().addAll("status-pill", course.getStatus().getCssClass());

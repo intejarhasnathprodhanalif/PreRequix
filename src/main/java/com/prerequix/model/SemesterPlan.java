@@ -17,6 +17,13 @@ public class SemesterPlan {
         this.totalCredits = 0.0;
     }
 
+    /** Convenience constructor for building plans from a pre-existing course list. */
+    public SemesterPlan(int termNumber, List<Course> courses) {
+        this.termNumber = termNumber;
+        this.courses = new ArrayList<>(courses);
+        this.totalCredits = courses.stream().mapToDouble(Course::getCredits).sum();
+    }
+
     public int getTermNumber() {
         return termNumber;
     }
