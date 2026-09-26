@@ -16,7 +16,9 @@
       "credits": 3.0,
       "department": "Computer Science",
       "description": "Classes, objects, inheritance, polymorphism, encapsulation, and abstraction in Java.",
-      "prerequisites": ["CS 101"]
+      "prerequisites": [
+        "CS 101"
+      ]
     },
     {
       "code": "MATH 101",
@@ -32,7 +34,10 @@
       "credits": 3.0,
       "department": "Computer Science",
       "description": "Arrays, linked lists, stacks, queues, trees, heaps, and hash tables.",
-      "prerequisites": ["CS 102", "MATH 101"]
+      "prerequisites": [
+        "CS 102",
+        "MATH 101"
+      ]
     },
     {
       "code": "CS 202",
@@ -40,7 +45,10 @@
       "credits": 3.0,
       "department": "Computer Science",
       "description": "Time and space complexity, sorting, searching, dynamic programming, and greedy algorithms.",
-      "prerequisites": ["CS 201", "MATH 101"]
+      "prerequisites": [
+        "CS 201",
+        "MATH 101"
+      ]
     },
     {
       "code": "MATH 201",
@@ -48,7 +56,9 @@
       "credits": 3.0,
       "department": "Mathematics",
       "description": "Vectors, matrices, linear transformations, eigenvalues, and eigenvectors.",
-      "prerequisites": ["MATH 101"]
+      "prerequisites": [
+        "MATH 101"
+      ]
     },
     {
       "code": "CS 301",
@@ -56,7 +66,9 @@
       "credits": 3.0,
       "department": "Computer Science",
       "description": "Relational model, SQL, normalization, transactions, indexing, and query optimization.",
-      "prerequisites": ["CS 201"]
+      "prerequisites": [
+        "CS 201"
+      ]
     },
     {
       "code": "CS 302",
@@ -64,7 +76,10 @@
       "credits": 3.0,
       "department": "Computer Science",
       "description": "Process management, memory management, file systems, concurrency, and synchronization.",
-      "prerequisites": ["CS 201", "CS 202"]
+      "prerequisites": [
+        "CS 201",
+        "CS 202"
+      ]
     },
     {
       "code": "CS 303",
@@ -72,7 +87,9 @@
       "credits": 3.0,
       "department": "Computer Science",
       "description": "OSI model, TCP/IP, HTTP, DNS, routing algorithms, and network security fundamentals.",
-      "prerequisites": ["CS 202"]
+      "prerequisites": [
+        "CS 202"
+      ]
     },
     {
       "code": "CS 304",
@@ -80,7 +97,9 @@
       "credits": 3.0,
       "department": "Computer Science",
       "description": "SDLC, requirements engineering, UML, design patterns, testing, and agile methodologies.",
-      "prerequisites": ["CS 202"]
+      "prerequisites": [
+        "CS 202"
+      ]
     },
     {
       "code": "CS 401",
@@ -88,7 +107,10 @@
       "credits": 3.0,
       "department": "Computer Science",
       "description": "Supervised and unsupervised learning, regression, classification, neural networks, and model evaluation.",
-      "prerequisites": ["CS 202", "MATH 201"]
+      "prerequisites": [
+        "CS 202",
+        "MATH 201"
+      ]
     },
     {
       "code": "CS 402",
@@ -96,7 +118,10 @@
       "credits": 3.0,
       "department": "Computer Science",
       "description": "CAP theorem, consensus protocols, distributed transactions, microservices, and fault tolerance.",
-      "prerequisites": ["CS 302", "CS 303"]
+      "prerequisites": [
+        "CS 302",
+        "CS 303"
+      ]
     },
     {
       "code": "CS 403",
@@ -104,7 +129,10 @@
       "credits": 3.0,
       "department": "Computer Science",
       "description": "Lexical analysis, parsing, semantic analysis, intermediate code generation, and optimization.",
-      "prerequisites": ["CS 302", "MATH 101"]
+      "prerequisites": [
+        "CS 302",
+        "MATH 101"
+      ]
     },
     {
       "code": "CS 404",
@@ -112,7 +140,9 @@
       "credits": 3.0,
       "department": "Computer Science",
       "description": "Cryptography, authentication, network security, web security, and ethical hacking basics.",
-      "prerequisites": ["CS 303"]
+      "prerequisites": [
+        "CS 303"
+      ]
     },
     {
       "code": "CS 499",
@@ -120,7 +150,10 @@
       "credits": 3.0,
       "department": "Computer Science",
       "description": "Independent research or industry-grade project integrating skills from the full CS curriculum.",
-      "prerequisites": ["CS 401", "CS 402"]
+      "prerequisites": [
+        "CS 401",
+        "CS 402"
+      ]
     }
   ]
 }
