@@ -55,11 +55,13 @@ public class MainController extends BorderPane {
 
     private Label             statusBarLabel;
     private ProgressIndicator busySpinner;
-    private boolean isDarkMode = false;
+    private boolean           isDarkMode = false;
+    private final Runnable    onLogout;
 
-    public MainController(Stage primaryStage, User user) {
+    public MainController(Stage primaryStage, User user, Runnable onLogout) {
         this.primaryStage = primaryStage;
         this.currentUser  = user;
+        this.onLogout     = onLogout;
 
         courseDetailPane = new CourseDetailPane(
                 graph,
@@ -296,8 +298,36 @@ public class MainController extends BorderPane {
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
+        // ── Sign Out button (bottom of sidebar) ───────────────────────────────
+        Button signOutBtn = new Button("🔒  Sign Out");
+        signOutBtn.setMaxWidth(Double.MAX_VALUE);
+        signOutBtn.setStyle(
+            "-fx-background-color: #fff1f2; -fx-text-fill: #e11d48;" +
+            "-fx-font-weight: bold; -fx-font-size: 12px;" +
+            "-fx-padding: 9 12; -fx-background-radius: 7; -fx-cursor: hand;" +
+            "-fx-border-color: #fecdd3; -fx-border-width: 1; -fx-border-radius: 7;");
+        signOutBtn.setOnMouseEntered(e -> signOutBtn.setStyle(signOutBtn.getStyle()
+            .replace("#fff1f2", "#ffe4e6")));
+        signOutBtn.setOnMouseExited(e -> signOutBtn.setStyle(signOutBtn.getStyle()
+            .replace("#ffe4e6", "#fff1f2")));
+        signOutBtn.setOnAction(e -> {
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.initOwner(primaryStage);
+            confirm.setTitle("Sign Out");
+            confirm.setHeaderText("Sign out of your account?");
+            confirm.setContentText(
+                "Your plan will be saved automatically.\n" +
+                "You can sign back in any time.");
+            confirm.showAndWait().ifPresent(btn -> {
+                if (btn == ButtonType.OK) {
+                    saveStateAsync();          // save before leaving
+                    if (onLogout != null) Platform.runLater(onLogout);
+                }
+            });
+        });
+
         VBox sidebar = new VBox(10, userInfo, graphNavBtn, catalogNavBtn, sequenceNavBtn,
-                               spacer, progressBox);
+                               spacer, progressBox, signOutBtn);
         sidebar.getStyleClass().add("sidebar");
         sidebar.setPadding(new Insets(16, 10, 16, 10));
         return sidebar;

@@ -15,12 +15,12 @@ import java.net.URL;
 /**
  * Main JavaFX Application Launcher for PreRequix.
  *
- * <p>Startup sequence:
+ * <p>Startup / session lifecycle:
  * <ol>
- *   <li>Initialize {@code users.db} (student accounts).</li>
- *   <li>Initialize {@code prerequix.db} (course data).</li>
+ *   <li>Initialize {@code users.db} and {@code prerequix.db}.</li>
  *   <li>Show the {@link AuthScreen} (sign-in / sign-up).</li>
- *   <li>On successful authentication, swap the scene to {@link MainController}.</li>
+ *   <li>On successful authentication, swap scene to {@link MainController}.</li>
+ *   <li>On Sign Out, save plan and swap scene back to {@link AuthScreen}.</li>
  * </ol>
  */
 public class App extends Application {
@@ -68,7 +68,7 @@ public class App extends Application {
     private void onLoginSuccess(User user) {
         System.out.println("[Auth] Logged in: " + user);
 
-        MainController mainController = new MainController(primaryStage, user);
+        MainController mainController = new MainController(primaryStage, user, this::onLogout);
         Scene scene = new Scene(mainController, 1280, 800);
         applyStylesheet(scene);
 
@@ -78,6 +78,16 @@ public class App extends Application {
         primaryStage.setScene(scene);
         primaryStage.setTitle("PreRequix  -  " + user.getFullName() +
                               " (" + user.getStudentId() + ")");
+    }
+
+    /**
+     * Called when the student clicks Sign Out.
+     * Resets the window to the authentication screen.
+     */
+    private void onLogout() {
+        System.out.println("[Auth] Signed out.");
+        primaryStage.setTitle("PreRequix - Course Prerequisite Planner");
+        showAuthScreen();
     }
 
     private void applyStylesheet(Scene scene) {
