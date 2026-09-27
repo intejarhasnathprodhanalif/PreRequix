@@ -44,6 +44,7 @@ public class ProfileSettingsDialog extends Stage {
         tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
         tabs.getTabs().addAll(
                 buildInfoTab(),
+                buildUsernameTab(),
                 buildNameTab(),
                 buildPasswordTab()
         );
@@ -88,7 +89,61 @@ public class ProfileSettingsDialog extends Stage {
         return box;
     }
 
-    // ─── Tab 2: Change Full Name ──────────────────────────────────────────
+    // ─── Tab 2: Update Username ───────────────────────────────────────────
+
+    private Tab buildUsernameTab() {
+        Tab tab = new Tab("Update Username");
+
+        Label heading = new Label("Change your login username");
+        heading.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
+
+        Label currentLbl = new Label("Current username: " + user.getUsername());
+        currentLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b;");
+
+        TextField usernameField = new TextField(user.getUsername());
+        styleField(usernameField);
+        usernameField.setPromptText("New username (min 3 chars, lowercase)");
+
+        Label errorLbl = new Label();
+        errorLbl.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 12px;");
+        errorLbl.setWrapText(true);
+        errorLbl.setVisible(false);
+
+        Label successLbl = new Label("Username updated successfully!");
+        successLbl.setStyle("-fx-text-fill: #10b981; -fx-font-size: 12px;");
+        successLbl.setVisible(false);
+
+        Button saveBtn = new Button("Save Username");
+        styleBtn(saveBtn);
+        saveBtn.setOnAction(e -> {
+            errorLbl.setVisible(false);
+            successLbl.setVisible(false);
+            String newUsername = usernameField.getText().trim().toLowerCase();
+            if (newUsername.equals(user.getUsername())) {
+                errorLbl.setText("That is already your current username.");
+                errorLbl.setVisible(true); return;
+            }
+            try {
+                UserDatabaseManager.getInstance().repository()
+                        .updateUsername(user.getId(), newUsername);
+                user.setUsername(newUsername);
+                currentLbl.setText("Current username: " + newUsername);
+                successLbl.setVisible(true);
+            } catch (Exception ex) {
+                errorLbl.setText(ex.getMessage());
+                errorLbl.setVisible(true);
+            }
+        });
+
+        VBox content = new VBox(14, heading, currentLbl,
+                labeledField("New Username", usernameField),
+                errorLbl, successLbl, saveBtn);
+        content.setPadding(new Insets(24));
+        tab.setContent(content);
+        return tab;
+    }
+
+    // ─── Tab 3: Change Full Name ──────────────────────────────────────────
 
     private Tab buildNameTab() {
         Tab tab = new Tab("Update Name");

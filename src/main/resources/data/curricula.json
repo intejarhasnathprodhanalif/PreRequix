@@ -1,0 +1,8 @@
+{
+  "meta": {
+    "version": "2.0",
+    "description": "PreRequix curriculum definitions - single source of truth for all programme templates. Add a new object to the curricula array to create a new programme; no Java recompilation needed.",
+    "totalCurricula": 16,
+    "lastUpdated": "2026-09-28"
+  },
+  "curricula": [

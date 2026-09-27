@@ -159,6 +159,39 @@ public class SQLiteUserRepository implements UserRepository {
         }
     }
 
+    /**
+     * Updates the username for a user. (UPDATE)
+     *
+     * @throws IllegalArgumentException if the username is blank, too short,
+     *                                  or already taken by another account.
+     */
+    public void updateUsername(String userId, String newUsername) throws Exception {
+        if (newUsername == null || newUsername.isBlank())
+            throw new IllegalArgumentException("Username cannot be blank.");
+        String cleaned = newUsername.trim().toLowerCase();
+        if (cleaned.length() < 3)
+            throw new IllegalArgumentException("Username must be at least 3 characters.");
+        // Check uniqueness — only fails if ANOTHER user owns this username
+        String checkSql = "SELECT id FROM users WHERE username = ? AND id != ?";
+        try (Connection conn = getConnection();
+             var ps = conn.prepareStatement(checkSql)) {
+            ps.setString(1, cleaned);
+            ps.setString(2, userId);
+            try (var rs = ps.executeQuery()) {
+                if (rs.next())
+                    throw new IllegalArgumentException(
+                            "Username '" + cleaned + "' is already taken by another account.");
+            }
+        }
+        String sql = "UPDATE users SET username = ? WHERE id = ?";
+        try (Connection conn = getConnection();
+             var ps = conn.prepareStatement(sql)) {
+            ps.setString(1, cleaned);
+            ps.setString(2, userId);
+            ps.executeUpdate();
+        }
+    }
+
     // ── DELETE ────────────────────────────────────────────────────────────
 
     @Override
