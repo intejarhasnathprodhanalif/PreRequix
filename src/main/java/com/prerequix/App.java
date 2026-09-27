@@ -68,7 +68,7 @@ public class App extends Application {
     private void onLoginSuccess(User user) {
         System.out.println("[Auth] Logged in: " + user);
 
-        MainController mainController = new MainController(primaryStage);
+        MainController mainController = new MainController(primaryStage, user);
         Scene scene = new Scene(mainController, 1280, 800);
         applyStylesheet(scene);
 
