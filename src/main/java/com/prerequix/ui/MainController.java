@@ -36,6 +36,11 @@ public class MainController extends BorderPane {
     private final Label availableVal    = new Label("...");
     private final Label totalCreditsVal = new Label("...");
 
+    // ── Sidebar progress widgets ───────────────────────────────────────────
+    private final ProgressBar sidebarProgress      = new ProgressBar(0);
+    private final Label       sidebarProgressLabel  = new Label("0 / 0 courses  ·  0 / 120 cr");
+    private       Label       sidebarNameLabel;
+
     private final Button graphNavBtn    = new Button("Graph Network");
     private final Button catalogNavBtn  = new Button("Course Catalog");
     private final Button sequenceNavBtn = new Button("Sequence Planner");
@@ -230,29 +235,69 @@ public class MainController extends BorderPane {
     // ─── Sidebar ──────────────────────────────────────────────────────────
 
     private VBox createSidebar() {
-        // Show logged-in student info at top of sidebar
-        Label name   = new Label(currentUser.getFullName());
-        name.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #1e293b;");
-        name.setWrapText(true);
-        Label sid    = new Label(currentUser.getStudentId());
+        // ── User info ──────────────────────────────────────────────────────
+        sidebarNameLabel = new Label(currentUser.getFullName());
+        sidebarNameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #1e293b;");
+        sidebarNameLabel.setWrapText(true);
+        Label sid = new Label(currentUser.getStudentId());
         sid.setStyle("-fx-font-size: 10px; -fx-text-fill: #64748b;");
-        VBox userInfo = new VBox(2, name, sid);
+
+        // ⚙ Settings button next to student name
+        Button settingsBtn = new Button("⚙");
+        settingsBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #64748b; " +
+                             "-fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 4;");
+        settingsBtn.setTooltip(new Tooltip("Account Settings"));
+        settingsBtn.setOnAction(e -> {
+            ProfileSettingsDialog dlg = new ProfileSettingsDialog(
+                    primaryStage, currentUser, newName -> {
+                        sidebarNameLabel.setText(newName);
+                        primaryStage.setTitle("PreRequix  -  " + newName +
+                                              " (" + currentUser.getStudentId() + ")");
+                    });
+            dlg.showAndWait();
+        });
+
+        HBox nameRow = new HBox(4, sidebarNameLabel, new Region(), settingsBtn);
+        HBox.setHgrow(nameRow.getChildren().get(1), Priority.ALWAYS);
+        nameRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox userInfo = new VBox(2, nameRow, sid);
         userInfo.setPadding(new Insets(0, 0, 10, 4));
         userInfo.setStyle("-fx-border-color: transparent transparent #e2e8f0 transparent; -fx-border-width: 0 0 1 0;");
 
+        // ── Nav buttons ────────────────────────────────────────────────────
         graphNavBtn.getStyleClass().addAll("sidebar-btn", "sidebar-btn-active");
         catalogNavBtn.getStyleClass().add("sidebar-btn");
         sequenceNavBtn.getStyleClass().add("sidebar-btn");
 
-        for (Button b : new Button[]{graphNavBtn, catalogNavBtn, sequenceNavBtn}) {
+        for (Button b : new Button[]{graphNavBtn, catalogNavBtn, sequenceNavBtn})
             b.setMaxWidth(Double.MAX_VALUE);
-        }
 
         graphNavBtn.setOnAction(e    -> showGraphView());
         catalogNavBtn.setOnAction(e  -> showCatalogView());
         sequenceNavBtn.setOnAction(e -> showSequenceView());
 
-        VBox sidebar = new VBox(10, userInfo, graphNavBtn, catalogNavBtn, sequenceNavBtn);
+        // ── Progress section ───────────────────────────────────────────────
+        Label progressTitle = new Label("Curriculum Progress");
+        progressTitle.setStyle("-fx-font-size: 10px; -fx-font-weight: 600; " +
+                               "-fx-text-fill: #64748b; -fx-padding: 0 0 2 0;");
+
+        sidebarProgress.setMaxWidth(Double.MAX_VALUE);
+        sidebarProgress.setStyle("-fx-accent: #3b82f6;");
+        sidebarProgress.setPrefHeight(8);
+
+        sidebarProgressLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #94a3b8;");
+        sidebarProgressLabel.setWrapText(true);
+
+        VBox progressBox = new VBox(4, progressTitle, sidebarProgress, sidebarProgressLabel);
+        progressBox.setPadding(new Insets(8, 4, 0, 4));
+        progressBox.setStyle("-fx-border-color: #e2e8f0 transparent transparent transparent; -fx-border-width: 1 0 0 0;");
+
+        Region spacer = new Region();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+
+        VBox sidebar = new VBox(10, userInfo, graphNavBtn, catalogNavBtn, sequenceNavBtn,
+                               spacer, progressBox);
         sidebar.getStyleClass().add("sidebar");
         sidebar.setPadding(new Insets(16, 10, 16, 10));
         return sidebar;
@@ -266,6 +311,7 @@ public class MainController extends BorderPane {
                                   this::onCourseSelectedFromView, this::onGraphDataUpdated);
         sequencePlannerPane = new SequencePlannerPane(primaryStage, graph,
                                   this::onCourseSelectedFromView);
+        sequencePlannerPane.setOnPlanEdited(this::saveStateAsync);
 
         for (var pane : new javafx.scene.Node[]{graphViewPane, courseCatalogPane, sequencePlannerPane}) {
             pane.setVisible(false); ((javafx.scene.layout.Pane) pane).setManaged(false);
@@ -362,6 +408,12 @@ public class MainController extends BorderPane {
             totalCreditsVal.setText(String.format("%.1f", r.totalCredits));
             conflictAlertPane.applyComputedCycle(r.cyclePath);
             sequencePlannerPane.applyComputedPlan(r.academicPlan, r.hasCycle());
+            // Update sidebar progress bar
+            double pct = r.total > 0 ? (double) r.completed / r.total : 0;
+            sidebarProgress.setProgress(pct);
+            sidebarProgressLabel.setText(String.format(
+                    "%d / %d courses  ·  %.0f / 120 cr",
+                    r.completed, r.total, r.totalCredits));
             statusBarLabel.setText("Ready.");
         }));
         task.setOnFailed(e -> Platform.runLater(() -> {

@@ -11,7 +11,11 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -53,8 +57,18 @@ public class SequencePlannerPane extends BorderPane {
     private final VBox excludedContainer;
 
     // ── Current plan state ────────────────────────────────────────────────
-    private AcademicPlanResult lastResult = null;
-    private boolean            lastHadCycle = false;
+    private AcademicPlanResult lastResult    = null;
+    private boolean            lastHadCycle  = false;
+
+    // ── Drag-and-drop state ───────────────────────────────────────────────
+    private static final DataFormat COURSE_ID_FORMAT = new DataFormat("prerequix/courseId");
+    /** Tracks which course is being dragged (by ID) and which term index it came from. */
+    private String  draggedCourseId   = null;
+    private int     draggedFromTermIdx = -1;
+    /** Callback invoked after a successful drag-drop so MainController can save. */
+    private Runnable onPlanEdited;
+
+    public void setOnPlanEdited(Runnable r) { this.onPlanEdited = r; }
 
     public SequencePlannerPane(Stage primaryStage, CourseGraph graph,
                                Consumer<Course> onCourseSelectedListener) {
@@ -260,23 +274,73 @@ public class SequencePlannerPane extends BorderPane {
         HBox.setHgrow(top.getChildren().get(1), Priority.ALWAYS);
         top.setAlignment(Pos.CENTER_LEFT);
 
-        // Fill progress: courses added vs target 5
         ProgressBar progress = new ProgressBar((double) coursesInTerm / COURSES_PER_TERM);
         progress.setMaxWidth(Double.MAX_VALUE);
         String barColor = coursesInTerm < COURSES_PER_TERM ? "#f59e0b" : "#3b82f6";
         progress.setStyle("-fx-accent: " + barColor + ";");
 
-        // Course rows
+        // Course rows container (drop target)
         VBox courses = new VBox(5);
         for (Course c : plan.getCourses()) {
-            courses.getChildren().add(createCourseRow(c));
+            courses.getChildren().add(createCourseRow(c, plan.getTermNumber()));
         }
+
+        // ── Drop target: accept course-ID from other term cards ───────────
+        courses.setOnDragOver(e -> {
+            if (e.getDragboard().hasContent(COURSE_ID_FORMAT)
+                    && !String.valueOf(plan.getTermNumber()).equals(
+                           e.getDragboard().getContent(COURSE_ID_FORMAT).toString().split(":")[1])) {
+                e.acceptTransferModes(TransferMode.MOVE);
+            }
+            e.consume();
+        });
+        courses.setOnDragEntered(e -> {
+            if (e.getDragboard().hasContent(COURSE_ID_FORMAT))
+                card.setStyle(card.getStyle() +
+                    "-fx-border-color: #3b82f6; -fx-border-width: 2; -fx-border-radius: 8;");
+        });
+        courses.setOnDragExited(e ->
+            card.setStyle(card.getStyle()
+                .replace("-fx-border-color: #3b82f6; -fx-border-width: 2; -fx-border-radius: 8;", "")));
+        courses.setOnDragDropped(e -> {
+            boolean success = false;
+            if (e.getDragboard().hasContent(COURSE_ID_FORMAT)) {
+                String payload  = e.getDragboard().getContent(COURSE_ID_FORMAT).toString();
+                String courseId = payload.split(":")[0];
+                int    fromTerm = Integer.parseInt(payload.split(":")[1]);
+                int    toTerm   = plan.getTermNumber();
+                if (fromTerm != toTerm && canMoveToTerm(courseId, toTerm)) {
+                    moveCourse(courseId, fromTerm, toTerm);
+                    success = true;
+                } else if (fromTerm != toTerm) {
+                    // Prerequisite violation — red flash
+                    card.setStyle(card.getStyle() +
+                        "-fx-border-color: #ef4444; -fx-border-width: 2; -fx-border-radius: 8;");
+                    new Thread(() -> {
+                        try { Thread.sleep(800); } catch (InterruptedException ignored) {}
+                        Platform.runLater(() -> card.setStyle(card.getStyle()
+                            .replace("-fx-border-color: #ef4444; -fx-border-width: 2; -fx-border-radius: 8;", "")));
+                    }, "FlashRed").start();
+                    // Show warning tooltip briefly
+                    Course c = graph.getCourse(courseId);
+                    if (c != null) {
+                        String msg = "Cannot move " + c.getCode() + " to Term " + toTerm +
+                                     " — prerequisites must come in an earlier term.";
+                        Tooltip tip = new Tooltip(msg);
+                        tip.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white;");
+                        Tooltip.install(card, tip);
+                    }
+                }
+            }
+            e.setDropCompleted(success);
+            e.consume();
+        });
 
         card.getChildren().addAll(top, progress, new Separator(), courses);
         return card;
     }
 
-    private HBox createCourseRow(Course c) {
+    private HBox createCourseRow(Course c, int termNumber) {
         boolean prereqsMet = allPrereqsCompleted(c);
 
         HBox row = new HBox(6);
@@ -285,7 +349,7 @@ public class SequencePlannerPane extends BorderPane {
         row.setStyle("-fx-background-color: " + (prereqsMet ? "#f1f5f9" : "#fff7ed") +
                      "; -fx-background-radius: 6px; -fx-cursor: hand;");
 
-        Label codeLabel = new Label(c.getCode());
+        Label codeLabel  = new Label(c.getCode());
         codeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
         codeLabel.setMinWidth(Region.USE_PREF_SIZE);
 
@@ -294,11 +358,16 @@ public class SequencePlannerPane extends BorderPane {
         titleLabel.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(titleLabel, Priority.ALWAYS);
 
+        // Drag handle indicator
+        Label dragHandle = new Label("⠿");
+        dragHandle.setStyle("-fx-font-size: 12px; -fx-text-fill: #cbd5e1; -fx-cursor: open-hand;");
+        dragHandle.setTooltip(new Tooltip("Drag to move to a different term"));
+
         Label creditLabel = new Label(c.getCredits() + " cr");
         creditLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: 600;");
         creditLabel.setMinWidth(Region.USE_PREF_SIZE);
 
-        row.getChildren().addAll(codeLabel, titleLabel, creditLabel);
+        row.getChildren().addAll(dragHandle, codeLabel, titleLabel, creditLabel);
 
         if (!prereqsMet) {
             Label warn = new Label("Prereq incomplete!");
@@ -312,6 +381,25 @@ public class SequencePlannerPane extends BorderPane {
         row.setOnMouseClicked(e -> {
             if (onCourseSelectedListener != null) onCourseSelectedListener.accept(c);
         });
+
+        // ── Drag-and-drop: make this row draggable ────────────────────────
+        row.setOnDragDetected(e -> {
+            draggedCourseId    = c.getId();
+            draggedFromTermIdx = termNumber;
+            javafx.scene.input.Dragboard db = row.startDragAndDrop(TransferMode.MOVE);
+            ClipboardContent content = new ClipboardContent();
+            content.put(COURSE_ID_FORMAT, c.getId() + ":" + termNumber);
+            db.setContent(content);
+            row.setStyle(row.getStyle() + "-fx-opacity: 0.55;");
+            e.consume();
+        });
+        row.setOnDragDone(e -> {
+            row.setStyle(row.getStyle().replace("-fx-opacity: 0.55;", ""));
+            draggedCourseId    = null;
+            draggedFromTermIdx = -1;
+            e.consume();
+        });
+
         return row;
     }
 
@@ -584,5 +672,84 @@ public class SequencePlannerPane extends BorderPane {
         a.setHeaderText(header);
         if (content != null) a.setContentText(content);
         a.showAndWait();
+    }
+
+    // ─── Drag-and-drop helpers ────────────────────────────────────────────
+
+    /**
+     * Returns {@code true} if the given course can be placed in {@code toTermNumber}
+     * without violating prerequisite ordering.
+     *
+     * <p>Rule: every direct prerequisite of the course must appear in a term
+     * with a term-number <em>strictly less than</em> {@code toTermNumber}.
+     */
+    private boolean canMoveToTerm(String courseId, int toTermNumber) {
+        if (lastResult == null) return false;
+        Course course = graph.getCourse(courseId);
+        if (course == null) return false;
+
+        // Build a map: courseId -> termNumber from the current plan
+        Map<String, Integer> termOfCourse = new HashMap<>();
+        for (SemesterPlan p : lastResult.plannedTerms)
+            for (Course c : p.getCourses())
+                termOfCourse.put(c.getId(), p.getTermNumber());
+
+        // All prereqs must be in an earlier term
+        for (String prereqId : course.getPrerequisiteIds()) {
+            Integer prereqTerm = termOfCourse.get(prereqId);
+            if (prereqTerm != null && prereqTerm >= toTermNumber) return false;
+        }
+
+        // Also check: no course in toTerm or later has this course as prerequisite
+        // (i.e., no dependent of courseId is in a term <= toTermNumber)
+        for (SemesterPlan p : lastResult.plannedTerms) {
+            if (p.getTermNumber() < toTermNumber) continue;
+            if (p.getTermNumber() == toTermNumber) {
+                // Courses in the same target term must not depend on the moving course
+                for (Course c : p.getCourses()) {
+                    if (!c.getId().equals(courseId) && c.getPrerequisiteIds().contains(courseId))
+                        return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Moves a course from {@code fromTermNumber} to {@code toTermNumber}
+     * in the current plan, then re-renders and invokes the save callback.
+     */
+    private void moveCourse(String courseId, int fromTermNumber, int toTermNumber) {
+        if (lastResult == null) return;
+
+        Course movedCourse = null;
+        SemesterPlan fromPlan = null;
+        SemesterPlan toPlan   = null;
+
+        for (SemesterPlan p : lastResult.plannedTerms) {
+            if (p.getTermNumber() == fromTermNumber) fromPlan = p;
+            if (p.getTermNumber() == toTermNumber)   toPlan   = p;
+        }
+        if (fromPlan == null || toPlan == null) return;
+
+        // Find and remove from source
+        Iterator<Course> it = fromPlan.getCourses().iterator();
+        while (it.hasNext()) {
+            Course c = it.next();
+            if (c.getId().equals(courseId)) { movedCourse = c; it.remove(); break; }
+        }
+        if (movedCourse == null) return;
+
+        // Add to target
+        toPlan.getCourses().add(movedCourse);
+
+        // Remove empty terms
+        lastResult.plannedTerms.removeIf(p -> p.getCourses().isEmpty());
+
+        // Re-render immediately
+        renderPlan(lastResult, lastHadCycle);
+
+        // Fire save callback
+        if (onPlanEdited != null) Platform.runLater(onPlanEdited);
     }
 }

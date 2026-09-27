@@ -146,6 +146,19 @@ public class SQLiteUserRepository implements UserRepository {
         }
     }
 
+    /** Updates the stored full name for a user. (UPDATE) */
+    public void updateFullName(String userId, String newFullName) throws Exception {
+        if (newFullName == null || newFullName.isBlank())
+            throw new IllegalArgumentException("Full name must not be blank.");
+        String sql = "UPDATE users SET full_name = ? WHERE id = ?";
+        try (Connection conn = getConnection();
+             var ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newFullName.trim());
+            ps.setString(2, userId);
+            ps.executeUpdate();
+        }
+    }
+
     // ── DELETE ────────────────────────────────────────────────────────────
 
     @Override
