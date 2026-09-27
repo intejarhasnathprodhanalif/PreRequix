@@ -1,8 +1,329 @@
 {
-  "meta": {
-    "version": "2.0",
-    "description": "PreRequix curriculum definitions - single source of truth for all programme templates. Add a new object to the curricula array to create a new programme; no Java recompilation needed.",
-    "totalCurricula": 16,
-    "lastUpdated": "2026-09-28"
-  },
+  "source": "PreRequix Global Curriculum & Academic Course Repository",
+  "version": "2.5",
+  "description": "PreRequix unified course and curriculum definitions. This JSON file acts as the primary data source and helper for PreRequix. It feeds the database seeder (CurriculumDataLoader), the remote API client (CourseApiClient & RemoteCourseParser), and local curriculum import workflows. Adding a new curriculum or course here automatically makes it available throughout the entire app without recompilation.",
+  "totalCurricula": 16,
   "curricula": [
+    {
+      "id": "CS",
+      "name": "Computer Science",
+      "department": "Computer Science",
+      "degree": "Bachelor of Science",
+      "description": "Comprehensive study of computer architecture, algorithms, data structures, artificial intelligence, software engineering, and systems programming.",
+      "courses": [
+        {"id": "CS101", "code": "CS 101", "title": "Introduction to Programming", "credits": 3.0, "department": "Computer Science", "description": "Fundamentals of programming logic, control structures, variables, loops, recursion, and object-oriented fundamentals in Java.", "prerequisites": []},
+        {"id": "CS102", "code": "CS 102", "title": "Object-Oriented Programming", "credits": 3.0, "department": "Computer Science", "description": "Classes, inheritance, polymorphism, encapsulation, interfaces, exception handling, and GUI design.", "prerequisites": ["CS101"]},
+        {"id": "MATH101", "code": "MATH 101", "title": "Discrete Mathematics", "credits": 3.0, "department": "Mathematics", "description": "Propositional logic, sets, predicates, induction, relations, functions, graph theory, and combinatorics.", "prerequisites": []},
+        {"id": "MATH102", "code": "MATH 102", "title": "Calculus I", "credits": 4.0, "department": "Mathematics", "description": "Limits, continuity, differentiation rules, applications of derivatives, integration, and Fundamental Theorem of Calculus.", "prerequisites": []},
+        {"id": "CS201", "code": "CS 201", "title": "Data Structures", "credits": 3.0, "department": "Computer Science", "description": "Linear and non-linear data structures: arrays, linked lists, stacks, queues, trees, binary search trees, heaps, and hash tables.", "prerequisites": ["CS102", "MATH101"]},
+        {"id": "CS202", "code": "CS 202", "title": "Algorithm Design & Analysis", "credits": 3.0, "department": "Computer Science", "description": "Asymptotic analysis, divide-and-conquer, greedy algorithms, dynamic programming, graph traversals, and NP-completeness.", "prerequisites": ["CS201", "MATH101"]},
+        {"id": "CS203", "code": "CS 203", "title": "Computer Organization & Architecture", "credits": 3.0, "department": "Computer Science", "description": "Digital logic, ALU design, instruction set architectures, CPU pipelining, cache memory, and I/O interfacing.", "prerequisites": ["CS102", "MATH101"]},
+        {"id": "MATH201", "code": "MATH 201", "title": "Linear Algebra", "credits": 3.0, "department": "Mathematics", "description": "Matrices, Gaussian elimination, vector spaces, determinants, eigenvalues, eigenvectors, and linear transformations.", "prerequisites": ["MATH101"]},
+        {"id": "CS301", "code": "CS 301", "title": "Operating Systems", "credits": 3.0, "department": "Computer Science", "description": "Processes, threads, CPU scheduling algorithms, deadlock handling, memory management, virtual memory, and file systems.", "prerequisites": ["CS201", "CS203"]},
+        {"id": "CS302", "code": "CS 302", "title": "Database Management Systems", "credits": 3.0, "department": "Computer Science", "description": "Relational data model, SQL queries, normalization up to BCNF, transaction management, ACID properties, and indexing.", "prerequisites": ["CS201"]},
+        {"id": "CS303", "code": "CS 303", "title": "Computer Networks", "credits": 3.0, "department": "Computer Science", "description": "OSI and TCP/IP protocol stacks, application protocols, transport layer, packet routing, and network security foundations.", "prerequisites": ["CS202"]},
+        {"id": "CS304", "code": "CS 304", "title": "Software Engineering", "credits": 3.0, "department": "Computer Science", "description": "Software development life cycle, Agile/Scrum, requirements specification, design patterns, UML, unit testing, and CI/CD.", "prerequisites": ["CS202"]},
+        {"id": "CS305", "code": "CS 305", "title": "Theory of Computation", "credits": 3.0, "department": "Computer Science", "description": "Finite automata, regular expressions, context-free grammars, pushdown automata, Turing machines, and decidability.", "prerequisites": ["CS202", "MATH101"]},
+        {"id": "CS401", "code": "CS 401", "title": "Artificial Intelligence", "credits": 3.0, "department": "Computer Science", "description": "Search heuristics (A*), constraint satisfaction, game playing (Minimax/Alpha-Beta), logic reasoning, and intro to neural nets.", "prerequisites": ["CS202"]},
+        {"id": "CS402", "code": "CS 402", "title": "Machine Learning", "credits": 3.0, "department": "Computer Science", "description": "Supervised/unsupervised algorithms, gradient descent, SVM, decision trees, neural networks, and model evaluation metrics.", "prerequisites": ["CS401", "MATH201"]},
+        {"id": "CS403", "code": "CS 403", "title": "Distributed Systems", "credits": 3.0, "department": "Computer Science", "description": "CAP theorem, Paxos/Raft consensus, distributed hashing, RPC, microservices architecture, and fault tolerance.", "prerequisites": ["CS301", "CS303"]},
+        {"id": "CS404", "code": "CS 404", "title": "Compiler Design", "credits": 3.0, "department": "Computer Science", "description": "Lexical analysis, LL/LR parsing techniques, syntax-directed translation, symbol tables, and code optimization.", "prerequisites": ["CS301", "CS305"]},
+        {"id": "CS405", "code": "CS 405", "title": "Information & Network Security", "credits": 3.0, "department": "Computer Science", "description": "Symmetric/asymmetric cryptography, public key infrastructure, web vulnerabilities, firewalls, and secure coding.", "prerequisites": ["CS303"]},
+        {"id": "CS499", "code": "CS 499", "title": "Capstone Senior Project", "credits": 4.0, "department": "Computer Science", "description": "Comprehensive individual or team capstone project encompassing system design, development, testing, and presentation.", "prerequisites": ["CS402", "CS403"]}
+      ]
+    },
+    {
+      "id": "SE",
+      "name": "Software Engineering",
+      "department": "Software Engineering",
+      "degree": "Bachelor of Science",
+      "description": "Focuses on engineering robust, maintainable, scalable software solutions with modern development lifecycle practices.",
+      "courses": [
+        {"id": "SE101", "code": "SE 101", "title": "Introduction to Software Engineering", "credits": 3.0, "department": "Software Engineering", "description": "Foundations of software lifecycle, problem decomposition, code quality, and collaboration tools.", "prerequisites": []},
+        {"id": "SE102", "code": "SE 102", "title": "Structured & Object-Oriented Programming", "credits": 3.0, "department": "Software Engineering", "description": "Clean code, object-oriented concepts, SOLID design principles, and automated testing in Java.", "prerequisites": ["SE101"]},
+        {"id": "SE201", "code": "SE 201", "title": "Data Structures & Algorithms", "credits": 4.0, "department": "Software Engineering", "description": "Core data structures and algorithms with focus on algorithmic efficiency and memory optimization.", "prerequisites": ["SE102"]},
+        {"id": "SE202", "code": "SE 202", "title": "Software Requirements Engineering", "credits": 3.0, "department": "Software Engineering", "description": "Elicitation, user stories, use cases, formal specifications, traceability matrices, and requirements validation.", "prerequisites": ["SE101"]},
+        {"id": "SE203", "code": "SE 203", "title": "Database Design & SQL", "credits": 3.0, "department": "Software Engineering", "description": "Entity-relationship modeling, relational algebra, SQL optimization, transactions, and indexing.", "prerequisites": ["SE201"]},
+        {"id": "SE301", "code": "SE 301", "title": "Software Architecture & Design Patterns", "credits": 3.0, "department": "Software Engineering", "description": "Creational, structural, behavioral GoF patterns, microservices, MVC, event-driven architectures, and domain-driven design.", "prerequisites": ["SE201", "SE202"]},
+        {"id": "SE302", "code": "SE 302", "title": "Software Quality Assurance & Testing", "credits": 3.0, "department": "Software Engineering", "description": "Unit testing (JUnit), integration testing, mocking, test-driven development (TDD), and automated testing suites.", "prerequisites": ["SE301"]},
+        {"id": "SE303", "code": "SE 303", "title": "DevOps & Continuous Delivery", "credits": 3.0, "department": "Software Engineering", "description": "CI/CD pipelines, Docker containerization, Kubernetes orchestration, infrastructure as code, and cloud deployment.", "prerequisites": ["SE301"]},
+        {"id": "SE401", "code": "SE 401", "title": "Cloud-Native Application Development", "credits": 3.0, "department": "Software Engineering", "description": "Serverless architectures, REST/GraphQL APIs, asynchronous messaging, and scalable backend services.", "prerequisites": ["SE303"]},
+        {"id": "SE402", "code": "SE 402", "title": "Software Project Management", "credits": 3.0, "department": "Software Engineering", "description": "Agile Scrum/Kanban ceremonies, effort estimation, risk mitigation, sprint planning, and team velocity metrics.", "prerequisites": ["SE302"]},
+        {"id": "SE499", "code": "SE 499", "title": "Software Engineering Capstone", "credits": 4.0, "department": "Software Engineering", "description": "Full-cycle enterprise software development project deployed to production environment.", "prerequisites": ["SE401", "SE402"]}
+      ]
+    },
+    {
+      "id": "EEE",
+      "name": "Electrical & Electronic Engineering",
+      "department": "Electrical Engineering",
+      "degree": "Bachelor of Science",
+      "description": "Studies electromagnetic fields, circuit design, power systems, microelectronics, and signal processing.",
+      "courses": [
+        {"id": "MATH101EEE", "code": "MATH 101", "title": "Discrete Mathematics", "credits": 3.0, "department": "Mathematics", "description": "Logic, sets, relations, functions, and boolean algebra.", "prerequisites": []},
+        {"id": "MATH102EEE", "code": "MATH 102", "title": "Calculus I", "credits": 4.0, "department": "Mathematics", "description": "Differential and integral calculus for engineers.", "prerequisites": []},
+        {"id": "MATH203EEE", "code": "MATH 203", "title": "Calculus II", "credits": 4.0, "department": "Mathematics", "description": "Multivariable calculus, double/triple integrals, partial derivatives.", "prerequisites": ["MATH102EEE"]},
+        {"id": "MATH301EEE", "code": "MATH 301", "title": "Differential Equations", "credits": 3.0, "department": "Mathematics", "description": "First and second order ODEs, Laplace transforms, and boundary value problems.", "prerequisites": ["MATH203EEE"]},
+        {"id": "PHYS101EEE", "code": "PHYS 101", "title": "University Physics I", "credits": 4.0, "department": "Physics", "description": "Mechanics, thermodynamics, wave motion, and laboratory experiments.", "prerequisites": []},
+        {"id": "PHYS102EEE", "code": "PHYS 102", "title": "University Physics II", "credits": 4.0, "department": "Physics", "description": "Electromagnetism, Coulomb's law, Maxwell equations, and optics.", "prerequisites": ["PHYS101EEE", "MATH203EEE"]},
+        {"id": "EEE101", "code": "EEE 101", "title": "Circuit Analysis I", "credits": 3.0, "department": "Electrical Engineering", "description": "Ohm's law, KVL, KCL, mesh/node analysis, Thevenin and Norton theorems, DC transient response.", "prerequisites": ["PHYS101EEE", "MATH102EEE"]},
+        {"id": "EEE102", "code": "EEE 102", "title": "Circuit Analysis II", "credits": 3.0, "department": "Electrical Engineering", "description": "AC steady-state analysis, phasors, frequency response, Bode plots, resonance, and filters.", "prerequisites": ["EEE101", "MATH203EEE"]},
+        {"id": "EEE201", "code": "EEE 201", "title": "Electronics I", "credits": 3.0, "department": "Electrical Engineering", "description": "Semiconductor diodes, BJTs, MOSFETs, biasing circuits, and small-signal amplifier models.", "prerequisites": ["EEE101"]},
+        {"id": "EEE202", "code": "EEE 202", "title": "Electronics II", "credits": 3.0, "department": "Electrical Engineering", "description": "Operational amplifiers, active filters, feedback topologies, power amplifiers, and oscillators.", "prerequisites": ["EEE201"]},
+        {"id": "EEE203", "code": "EEE 203", "title": "Digital Logic Design", "credits": 3.0, "department": "Electrical Engineering", "description": "Combinational logic, Karnaugh maps, sequential circuits, flip-flops, and finite state machines.", "prerequisites": ["MATH101EEE"]},
+        {"id": "EEE204", "code": "EEE 204", "title": "Signals & Systems", "credits": 3.0, "department": "Electrical Engineering", "description": "Continuous and discrete signals, convolution, Fourier transform, and sampling theorem.", "prerequisites": ["EEE102", "MATH301EEE"]},
+        {"id": "EEE301", "code": "EEE 301", "title": "Microprocessors & Embedded Systems", "credits": 3.0, "department": "Electrical Engineering", "description": "Assembly programming, CPU registers, memory mapping, interrupt handlers, and peripherals.", "prerequisites": ["EEE203"]},
+        {"id": "EEE302", "code": "EEE 302", "title": "Control Systems", "credits": 3.0, "department": "Electrical Engineering", "description": "Transfer functions, block diagram reduction, Routh-Hurwitz stability, root locus, PID control.", "prerequisites": ["EEE204", "MATH301EEE"]},
+        {"id": "EEE304", "code": "EEE 304", "title": "Power Systems Analysis", "credits": 3.0, "department": "Electrical Engineering", "description": "Three-phase power, transformers, transmission lines, load flow, and fault calculations.", "prerequisites": ["EEE102"]},
+        {"id": "EEE401", "code": "EEE 401", "title": "Digital Signal Processing", "credits": 3.0, "department": "Electrical Engineering", "description": "Z-transform, Discrete Fourier Transform (DFT), Fast Fourier Transform (FFT), FIR/IIR filters.", "prerequisites": ["EEE204"]},
+        {"id": "EEE402", "code": "EEE 402", "title": "Communication Systems", "credits": 3.0, "department": "Electrical Engineering", "description": "Analog and digital modulation (AM, FM, PSK, QAM), noise analysis, and multiplexing.", "prerequisites": ["EEE204"]},
+        {"id": "EEE499", "code": "EEE 499", "title": "Electrical Engineering Capstone", "credits": 4.0, "department": "Electrical Engineering", "description": "Hardware and software design of a practical electrical/electronics engineering system.", "prerequisites": ["EEE401", "EEE402"]}
+      ]
+    },
+    {
+      "id": "DS",
+      "name": "Data Science & Artificial Intelligence",
+      "department": "Data Science",
+      "degree": "Bachelor of Science",
+      "description": "Explores data wrangling, machine learning, deep learning, statistical modeling, big data architectures, and AI ethics.",
+      "courses": [
+        {"id": "DS101", "code": "DS 101", "title": "Python for Data Science", "credits": 3.0, "department": "Data Science", "description": "Python fundamentals, NumPy matrices, Pandas DataFrames, and Matplotlib/Seaborn visualization.", "prerequisites": []},
+        {"id": "DS102", "code": "DS 102", "title": "Statistical Foundations of Data Science", "credits": 3.0, "department": "Data Science", "description": "Probability distributions, central limit theorem, hypothesis testing, confidence intervals, and ANOVA.", "prerequisites": ["DS101"]},
+        {"id": "DS103", "code": "DS 103", "title": "Linear Algebra for Machine Learning", "credits": 3.0, "department": "Mathematics", "description": "Vector norms, matrix decomposition, SVD, PCA, eigenvalues, and gradient concepts.", "prerequisites": ["DS101"]},
+        {"id": "DS201", "code": "DS 201", "title": "Data Wrangling & Feature Engineering", "credits": 3.0, "department": "Data Science", "description": "Data cleaning, imputation, transformation, categorical encoding, and ETL data pipelines.", "prerequisites": ["DS101"]},
+        {"id": "DS202", "code": "DS 202", "title": "Machine Learning Algorithms", "credits": 3.0, "department": "Data Science", "description": "Supervised learning, linear/logistic regression, Random Forest, XGBoost, k-Means, and cross-validation.", "prerequisites": ["DS102", "DS103"]},
+        {"id": "DS203", "code": "DS 203", "title": "Big Data Technologies & Spark", "credits": 3.0, "department": "Data Science", "description": "Distributed computing with Apache Spark, Hadoop ecosystem, PySpark, and distributed file systems.", "prerequisites": ["DS201"]},
+        {"id": "DS301", "code": "DS 301", "title": "Deep Learning & Neural Networks", "credits": 3.0, "department": "Data Science", "description": "Backpropagation, PyTorch, Convolutional Neural Networks (CNNs), and Recurrent Networks (RNNs).", "prerequisites": ["DS202"]},
+        {"id": "DS302", "code": "DS 302", "title": "Natural Language Processing", "credits": 3.0, "department": "Data Science", "description": "Text tokenization, TF-IDF, Word2Vec, Transformer architectures, BERT, and Large Language Models.", "prerequisites": ["DS301"]},
+        {"id": "DS304", "code": "DS 304", "title": "MLOps & Model Deployment", "credits": 3.0, "department": "Data Science", "description": "Model serving, FastAPI, Docker, MLflow, CI/CD for machine learning, and drift monitoring.", "prerequisites": ["DS202"]},
+        {"id": "DS401", "code": "DS 401", "title": "Computer Vision", "credits": 3.0, "department": "Data Science", "description": "Image processing, OpenCV, object detection with YOLO, image segmentation, and generative models.", "prerequisites": ["DS301"]},
+        {"id": "DS499", "code": "DS 499", "title": "Data Science Capstone Project", "credits": 4.0, "department": "Data Science", "description": "End-to-end data product with data extraction, modeling, validation, and cloud deployment.", "prerequisites": ["DS304", "DS302"]}
+      ]
+    },
+    {
+      "id": "CYBER",
+      "name": "Cybersecurity & Information Assurance",
+      "department": "Cybersecurity",
+      "degree": "Bachelor of Science",
+      "description": "Prepares students for ethical hacking, digital forensics, defensive operations, incident response, and security architecture.",
+      "courses": [
+        {"id": "SEC101", "code": "SEC 101", "title": "Cybersecurity Fundamentals", "credits": 3.0, "department": "Cybersecurity", "description": "CIA triad, threat modeling, attack surfaces, security policies, and cyber ethics.", "prerequisites": []},
+        {"id": "SEC102", "code": "SEC 102", "title": "Linux Systems & Scripting", "credits": 3.0, "department": "Cybersecurity", "description": "Linux command-line mastery, Bash scripting, system administration, and permissions management.", "prerequisites": ["SEC101"]},
+        {"id": "SEC201", "code": "SEC 201", "title": "Network Security & Protocols", "credits": 3.0, "department": "Cybersecurity", "description": "Packet sniffing, Wireshark, firewalls, IDS/IPS configuration, VPNs, and secure network design.", "prerequisites": ["SEC102"]},
+        {"id": "SEC202", "code": "SEC 202", "title": "Applied Cryptography", "credits": 3.0, "department": "Cybersecurity", "description": "AES, RSA, ECC, hash functions, digital signatures, PKI certificates, and zero-knowledge proofs.", "prerequisites": ["SEC101"]},
+        {"id": "SEC301", "code": "SEC 301", "title": "Ethical Hacking & Penetration Testing", "credits": 3.0, "department": "Cybersecurity", "description": "Reconnaissance, vulnerability scanning, Metasploit, privilege escalation, and exploitation techniques.", "prerequisites": ["SEC201", "SEC202"]},
+        {"id": "SEC302", "code": "SEC 302", "title": "Web Application Security", "credits": 3.0, "department": "Cybersecurity", "description": "OWASP Top 10, SQL injection, XSS, CSRF, server-side request forgery, and secure code review.", "prerequisites": ["SEC201"]},
+        {"id": "SEC303", "code": "SEC 303", "title": "Digital Forensics & Incident Response", "credits": 3.0, "department": "Cybersecurity", "description": "Disk image analysis, memory forensics, chain of custody, log correlation, and timeline creation.", "prerequisites": ["SEC201"]},
+        {"id": "SEC401", "code": "SEC 401", "title": "Cloud Security Architecture", "credits": 3.0, "department": "Cybersecurity", "description": "IAM policies, shared responsibility model, cloud posture management, and zero-trust principles.", "prerequisites": ["SEC301"]},
+        {"id": "SEC499", "code": "SEC 499", "title": "Cybersecurity Defense Capstone", "credits": 4.0, "department": "Cybersecurity", "description": "Red-team/blue-team simulation project defending a mock enterprise infrastructure.", "prerequisites": ["SEC301", "SEC303"]}
+      ]
+    },
+    {
+      "id": "IT",
+      "name": "Information Technology",
+      "department": "Information Technology",
+      "degree": "Bachelor of Science",
+      "description": "Covers enterprise networking, cloud services, web applications, sysadmin, and IT service management.",
+      "courses": [
+        {"id": "IT101", "code": "IT 101", "title": "Computer & IT Fundamentals", "credits": 3.0, "department": "IT", "description": "Hardware architecture, OS fundamentals, binary systems, and IT productivity tools.", "prerequisites": []},
+        {"id": "IT102", "code": "IT 102", "title": "Introduction to Programming with Python", "credits": 3.0, "department": "IT", "description": "Variables, conditional logic, loops, functions, file operations, and error handling in Python.", "prerequisites": ["IT101"]},
+        {"id": "IT103", "code": "IT 103", "title": "Web Development Fundamentals", "credits": 3.0, "department": "IT", "description": "HTML5 semantic markup, CSS3 layouts (Flexbox/Grid), and client-side JavaScript basics.", "prerequisites": ["IT101"]},
+        {"id": "IT201", "code": "IT 201", "title": "Database Management Systems", "credits": 3.0, "department": "IT", "description": "Relational schemas, SQL querying, normalization, stored procedures, and NoSQL databases.", "prerequisites": ["IT102"]},
+        {"id": "IT202", "code": "IT 202", "title": "Computer Networking Essentials", "credits": 3.0, "department": "IT", "description": "Subnetting, routing tables, DNS, DHCP, switching protocols, and Wi-Fi standards.", "prerequisites": ["IT101"]},
+        {"id": "IT301", "code": "IT 301", "title": "Cloud Computing Infrastructure", "credits": 3.0, "department": "IT", "description": "Virtual machines, cloud storage buckets, load balancers, serverless lambdas on AWS/Azure.", "prerequisites": ["IT202", "IT201"]},
+        {"id": "IT304", "code": "IT 304", "title": "Full-Stack Web Development", "credits": 3.0, "department": "IT", "description": "Node.js/Express, RESTful APIs, JWT authentication, and React single-page frontend.", "prerequisites": ["IT103", "IT201"]},
+        {"id": "IT401", "code": "IT 401", "title": "IT Project & Service Management", "credits": 3.0, "department": "IT", "description": "ITIL foundation principles, SLA agreements, Agile project workflows, and ticket management.", "prerequisites": ["IT301"]},
+        {"id": "IT499", "code": "IT 499", "title": "IT Solutions Capstone", "credits": 4.0, "department": "IT", "description": "End-to-end design and deployment of an enterprise IT solution.", "prerequisites": ["IT304", "IT401"]}
+      ]
+    },
+    {
+      "id": "BBA",
+      "name": "Business Administration",
+      "department": "Business Administration",
+      "degree": "Bachelor of Business Administration",
+      "description": "Comprehensive business curriculum covering management, accounting, corporate finance, marketing, and strategic decision making.",
+      "courses": [
+        {"id": "BUS101", "code": "BUS 101", "title": "Foundations of Modern Business", "credits": 3.0, "department": "Business", "description": "Business environment, entrepreneurship, global economy, ethics, and organizational structures.", "prerequisites": []},
+        {"id": "BUS102", "code": "BUS 102", "title": "Business Communication & Presentation", "credits": 3.0, "department": "Business", "description": "Executive writing, memos, pitch deck creation, formal presentations, and team negotiation.", "prerequisites": []},
+        {"id": "BUS103", "code": "BUS 103", "title": "Principles of Management", "credits": 3.0, "department": "Business", "description": "Planning, organizing, staffing, leading, motivating teams, and operational control.", "prerequisites": []},
+        {"id": "BUS104", "code": "BUS 104", "title": "Principles of Marketing", "credits": 3.0, "department": "Marketing", "description": "Market segmentation, targeting, positioning (STP), the 4 Ps, and consumer behavior.", "prerequisites": []},
+        {"id": "ECON101BBA", "code": "ECON 101", "title": "Microeconomics for Business", "credits": 3.0, "department": "Economics", "description": "Supply/demand elasticity, consumer choice theory, production costs, and market structures.", "prerequisites": []},
+        {"id": "ACC101", "code": "ACC 101", "title": "Financial Accounting", "credits": 3.0, "department": "Accounting", "description": "Double-entry bookkeeping, journal entries, balance sheets, income statements, and cash flows.", "prerequisites": ["BUS101"]},
+        {"id": "ACC201", "code": "ACC 201", "title": "Managerial & Cost Accounting", "credits": 3.0, "department": "Accounting", "description": "Cost behavior, job-order costing, activity-based costing, budgeting, and CVP analysis.", "prerequisites": ["ACC101"]},
+        {"id": "FIN201", "code": "FIN 201", "title": "Corporate Finance", "credits": 3.0, "department": "Finance", "description": "Time value of money, NPV/IRR, bond/stock valuation, cost of capital (WACC), and dividends.", "prerequisites": ["ACC101", "ECON101BBA"]},
+        {"id": "FIN301", "code": "FIN 301", "title": "Financial Markets & Instruments", "credits": 3.0, "department": "Finance", "description": "Money markets, capital markets, equity underwriting, bond pricing, and financial institutions.", "prerequisites": ["FIN201"]},
+        {"id": "MKT301", "code": "MKT 301", "title": "Digital Marketing Strategy", "credits": 3.0, "department": "Marketing", "description": "Search engine optimization (SEO), pay-per-click advertising, social media analytics, and conversion funnels.", "prerequisites": ["BUS104"]},
+        {"id": "BUS401", "code": "BUS 401", "title": "Strategic Business Management", "credits": 3.0, "department": "Business", "description": "Competitive strategy, Porter's Five Forces, SWOT analysis, mergers and acquisitions.", "prerequisites": ["BUS103", "FIN201"]},
+        {"id": "BUS499", "code": "BUS 499", "title": "BBA Strategic Capstone", "credits": 4.0, "department": "Business", "description": "Integrated business plan simulation and strategy consulting project.", "prerequisites": ["BUS401", "FIN301"]}
+      ]
+    },
+    {
+      "id": "ME",
+      "name": "Mechanical Engineering",
+      "department": "Mechanical Engineering",
+      "degree": "Bachelor of Science",
+      "description": "Covers thermodynamics, kinematics, mechanics of materials, fluid dynamics, manufacturing, and CAD/CAM.",
+      "courses": [
+        {"id": "MATH102ME", "code": "MATH 102", "title": "Calculus I", "credits": 4.0, "department": "Mathematics", "description": "Differential and integral calculus for engineers.", "prerequisites": []},
+        {"id": "PHYS101ME", "code": "PHYS 101", "title": "University Physics I", "credits": 4.0, "department": "Physics", "description": "Newtonian mechanics, momentum, work-energy, and rotational dynamics.", "prerequisites": []},
+        {"id": "ME101", "code": "ME 101", "title": "Engineering Mechanics (Statics & Dynamics)", "credits": 3.0, "department": "Mechanical Engineering", "description": "Equilibrium of rigid bodies, trusses, frames, rectilinear/angular kinematics, and kinetics.", "prerequisites": ["MATH102ME", "PHYS101ME"]},
+        {"id": "ME102", "code": "ME 102", "title": "Thermodynamics I", "credits": 3.0, "department": "Mechanical Engineering", "description": "First and Second Laws of thermodynamics, entropy, ideal gases, and Carnot efficiency.", "prerequisites": ["PHYS101ME", "MATH102ME"]},
+        {"id": "ME201", "code": "ME 201", "title": "Fluid Mechanics", "credits": 3.0, "department": "Mechanical Engineering", "description": "Fluid statics, Bernoulli equation, viscous pipe flow, boundary layers, and Navier-Stokes.", "prerequisites": ["ME101"]},
+        {"id": "ME202", "code": "ME 202", "title": "Mechanics of Deformable Bodies", "credits": 3.0, "department": "Mechanical Engineering", "description": "Stress-strain curves, axial loading, torsion of shafts, beam deflection, and Mohr's circle.", "prerequisites": ["ME101"]},
+        {"id": "ME301", "code": "ME 301", "title": "Heat & Mass Transfer", "credits": 3.0, "department": "Mechanical Engineering", "description": "Conduction, convection, radiation heat transfer, and heat exchanger design equations.", "prerequisites": ["ME102", "ME201"]},
+        {"id": "ME302", "code": "ME 302", "title": "Mechanical Design of Machine Elements", "credits": 3.0, "department": "Mechanical Engineering", "description": "Fatigue failure theories, shafts, gears, bearings, clutches, brakes, and threaded fasteners.", "prerequisites": ["ME202"]},
+        {"id": "ME401", "code": "ME 401", "title": "Robotics & Automated Manufacturing", "credits": 3.0, "department": "Mechanical Engineering", "description": "Forward/inverse kinematics, CNC machining, actuators, PLC ladder logic, and industrial robots.", "prerequisites": ["ME302"]},
+        {"id": "ME499", "code": "ME 499", "title": "Mechanical Engineering Capstone", "credits": 4.0, "department": "Mechanical Engineering", "description": "Design, prototype, and test an automated or thermodynamic mechanical system.", "prerequisites": ["ME301", "ME302"]}
+      ]
+    },
+    {
+      "id": "CE",
+      "name": "Civil Engineering",
+      "department": "Civil Engineering",
+      "degree": "Bachelor of Science",
+      "description": "Studies structural analysis, geotechnical engineering, hydraulic structures, environmental engineering, and transportation systems.",
+      "courses": [
+        {"id": "CE101", "code": "CE 101", "title": "Introduction to Civil Infrastructure", "credits": 3.0, "department": "Civil Engineering", "description": "Overview of structural, environmental, geotechnical, and transportation engineering disciplines.", "prerequisites": []},
+        {"id": "CE102", "code": "CE 102", "title": "Engineering Drafting & CAD", "credits": 3.0, "department": "Civil Engineering", "description": "Orthographic projections, AutoCAD drafting, civil blueprints, and 3D architectural modeling.", "prerequisites": []},
+        {"id": "CE201", "code": "CE 201", "title": "Mechanics of Materials", "credits": 3.0, "department": "Civil Engineering", "description": "Internal shear/moment diagrams, axial deformation, column buckling, and torsional shear.", "prerequisites": ["CE101"]},
+        {"id": "CE301", "code": "CE 301", "title": "Structural Analysis I", "credits": 3.0, "department": "Civil Engineering", "description": "Determinate/indeterminate trusses, cables, influence lines, virtual work, and deflection.", "prerequisites": ["CE201"]},
+        {"id": "CE302", "code": "CE 302", "title": "Soil Mechanics & Foundation Engineering", "credits": 3.0, "department": "Civil Engineering", "description": "Soil classification, effective stress, consolidation, shear strength, and shallow footing design.", "prerequisites": ["CE201"]},
+        {"id": "CE304", "code": "CE 304", "title": "Hydrology & Water Resources Engineering", "credits": 3.0, "department": "Civil Engineering", "description": "Precipitation modeling, runoff hydrographs, open-channel hydraulics, and reservoir design.", "prerequisites": ["CE101"]},
+        {"id": "CE401", "code": "CE 401", "title": "Design of Reinforced Concrete Structures", "credits": 3.0, "department": "Civil Engineering", "description": "ACI code specifications, flexural/shear design of RC beams, columns, and two-way slabs.", "prerequisites": ["CE301"]},
+        {"id": "CE402", "code": "CE 402", "title": "Structural Steel Design", "credits": 3.0, "department": "Civil Engineering", "description": "AISC LRFD criteria, tension members, steel beams, composite construction, and connections.", "prerequisites": ["CE301"]},
+        {"id": "CE499", "code": "CE 499", "title": "Civil Engineering Senior Design", "credits": 4.0, "department": "Civil Engineering", "description": "Comprehensive design of structural infrastructure project with complete blueprints.", "prerequisites": ["CE401", "CE302"]}
+      ]
+    },
+    {
+      "id": "CHE",
+      "name": "Chemical Engineering",
+      "department": "Chemical Engineering",
+      "degree": "Bachelor of Science",
+      "description": "Studies transport phenomena, reaction kinetics, chemical thermodynamics, separation processes, and industrial plant design.",
+      "courses": [
+        {"id": "CHE101", "code": "CHE 101", "title": "Introduction to Chemical Processes", "credits": 3.0, "department": "Chemical Engineering", "description": "Material and energy balances, steady-state process flowsheet calculations, and phase equilibria.", "prerequisites": []},
+        {"id": "CHE201", "code": "CHE 201", "title": "Chemical Engineering Thermodynamics", "credits": 3.0, "department": "Chemical Engineering", "description": "Equations of state, fugacity, vapor-liquid equilibria (VLE), and chemical reaction equilibrium.", "prerequisites": ["CHE101"]},
+        {"id": "CHE202", "code": "CHE 202", "title": "Fluid Flow & Heat Transfer Operations", "credits": 3.0, "department": "Chemical Engineering", "description": "Piping friction losses, pumps, convective heat transfer, and shell-and-tube exchanger sizing.", "prerequisites": ["CHE101"]},
+        {"id": "CHE301", "code": "CHE 301", "title": "Mass Transfer & Separation Processes", "credits": 3.0, "department": "Chemical Engineering", "description": "Distillation columns, McCabe-Thiele method, gas absorption, liquid extraction, and membrane filtration.", "prerequisites": ["CHE201", "CHE202"]},
+        {"id": "CHE302", "code": "CHE 302", "title": "Chemical Reaction Engineering", "credits": 3.0, "department": "Chemical Engineering", "description": "Batch reactors, CSTR, PFR design, reaction rate laws, catalysts, and temperature effects.", "prerequisites": ["CHE201"]},
+        {"id": "CHE401", "code": "CHE 401", "title": "Process Dynamics & Automated Control", "credits": 3.0, "department": "Chemical Engineering", "description": "Transfer functions, feedback loops, PID tuning, valve sizing, and stability analysis.", "prerequisites": ["CHE301"]},
+        {"id": "CHE499", "code": "CHE 499", "title": "Chemical Plant Design Capstone", "credits": 4.0, "department": "Chemical Engineering", "description": "Simulation and economic appraisal of a full chemical production facility.", "prerequisites": ["CHE301", "CHE302"]}
+      ]
+    },
+    {
+      "id": "MATH",
+      "name": "Pure & Applied Mathematics",
+      "department": "Mathematics",
+      "degree": "Bachelor of Science",
+      "description": "Studies real analysis, abstract algebra, complex variables, differential geometry, topology, and numerical algorithms.",
+      "courses": [
+        {"id": "MATH101M", "code": "MATH 101", "title": "Discrete Mathematics & Logic", "credits": 3.0, "department": "Mathematics", "description": "Mathematical proof techniques, predicate calculus, relations, functions, and graph theory.", "prerequisites": []},
+        {"id": "MATH102M", "code": "MATH 102", "title": "Calculus I", "credits": 4.0, "department": "Mathematics", "description": "Epsilon-delta limits, differentiation theorems, Riemann integrals, and applications.", "prerequisites": []},
+        {"id": "MATH201M", "code": "MATH 201", "title": "Linear Algebra & Matrix Theory", "credits": 3.0, "department": "Mathematics", "description": "Vector spaces, inner product spaces, linear transformations, Jordan canonical forms.", "prerequisites": ["MATH101M"]},
+        {"id": "MATH203M", "code": "MATH 203", "title": "Multivariable Calculus", "credits": 4.0, "department": "Mathematics", "description": "Gradients, directional derivatives, Green's theorem, Stokes' theorem, and divergence theorem.", "prerequisites": ["MATH102M"]},
+        {"id": "MATH301M", "code": "MATH 301", "title": "Differential Equations", "credits": 3.0, "department": "Mathematics", "description": "Linear ODE systems, Frobenius method, phase plane analysis, and boundary value problems.", "prerequisites": ["MATH203M"]},
+        {"id": "MATH302M", "code": "MATH 302", "title": "Real Analysis", "credits": 3.0, "department": "Mathematics", "description": "Topology of metric spaces, compact sets, Cauchy sequences, Lebesgue integration intro.", "prerequisites": ["MATH203M"]},
+        {"id": "MATH303M", "code": "MATH 303", "title": "Abstract Algebra (Groups, Rings, Fields)", "credits": 3.0, "department": "Mathematics", "description": "Group homomorphisms, Lagrange theorem, quotient rings, ideals, and Galois theory.", "prerequisites": ["MATH201M", "MATH101M"]},
+        {"id": "MATH401M", "code": "MATH 401", "title": "Complex Variables", "credits": 3.0, "department": "Mathematics", "description": "Analytic functions, Cauchy-Goursat theorem, Laurent series, residue integration theorem.", "prerequisites": ["MATH302M"]},
+        {"id": "MATH499M", "code": "MATH 499", "title": "Mathematics Research Thesis", "credits": 4.0, "department": "Mathematics", "description": "Independent mathematical research paper under faculty supervision.", "prerequisites": ["MATH302M", "MATH303M"]}
+      ]
+    },
+    {
+      "id": "PHYS",
+      "name": "Physics",
+      "department": "Physics",
+      "degree": "Bachelor of Science",
+      "description": "Studies classical mechanics, electrodynamics, quantum theory, thermodynamics, and astrophysics.",
+      "courses": [
+        {"id": "PHYS101P", "code": "PHYS 101", "title": "University Physics I: Mechanics", "credits": 4.0, "department": "Physics", "description": "Newtonian mechanics, rotational motion, gravitation, oscillations, and fluids.", "prerequisites": []},
+        {"id": "PHYS102P", "code": "PHYS 102", "title": "University Physics II: Electromagnetism", "credits": 4.0, "department": "Physics", "description": "Electric fields, Gauss's law, magnetic induction, Maxwell's equations, and optics.", "prerequisites": ["PHYS101P"]},
+        {"id": "PHYS201P", "code": "PHYS 201", "title": "Classical Mechanics & Dynamics", "credits": 3.0, "department": "Physics", "description": "Lagrangian and Hamiltonian formulations, central force problem, and rigid body rotation.", "prerequisites": ["PHYS101P"]},
+        {"id": "PHYS202P", "code": "PHYS 202", "title": "Electromagnetic Theory", "credits": 3.0, "department": "Physics", "description": "Vector calculus in electrodynamics, dielectric media, electromagnetic wave radiation.", "prerequisites": ["PHYS102P"]},
+        {"id": "PHYS301P", "code": "PHYS 301", "title": "Quantum Mechanics I", "credits": 3.0, "department": "Physics", "description": "Wave mechanics, Schrodinger equation in 1D/3D, harmonic oscillator, and hydrogen atom.", "prerequisites": ["PHYS201P", "PHYS202P"]},
+        {"id": "PHYS302P", "code": "PHYS 302", "title": "Thermal & Statistical Physics", "credits": 3.0, "department": "Physics", "description": "Microcanonical/canonical ensembles, partition functions, Fermi-Dirac and Bose-Einstein statistics.", "prerequisites": ["PHYS101P"]},
+        {"id": "PHYS401P", "code": "PHYS 401", "title": "Solid State Physics", "credits": 3.0, "department": "Physics", "description": "Crystal lattices, X-ray diffraction, phonon dispersions, and semiconductor band theory.", "prerequisites": ["PHYS301P"]},
+        {"id": "PHYS499P", "code": "PHYS 499", "title": "Physics Capstone Project", "credits": 4.0, "department": "Physics", "description": "Original laboratory or theoretical physics research investigation.", "prerequisites": ["PHYS301P", "PHYS302P"]}
+      ]
+    },
+    {
+      "id": "BIO",
+      "name": "Biotechnology & Genetic Engineering",
+      "department": "Biotechnology",
+      "degree": "Bachelor of Science",
+      "description": "Studies molecular biology, bioinformatics, genetic editing, bioprocessing, and drug design.",
+      "courses": [
+        {"id": "BIO101", "code": "BIO 101", "title": "Cell Biology & Genetics", "credits": 3.0, "department": "Biotechnology", "description": "Organelles, membrane transport, cell cycle, mitosis/meiosis, and Mendelian inheritance.", "prerequisites": []},
+        {"id": "BIO102", "code": "BIO 102", "title": "Biochemistry I", "credits": 3.0, "department": "Biotechnology", "description": "Amino acids, enzyme kinetics, carbohydrate metabolism, and bioenergetics.", "prerequisites": ["BIO101"]},
+        {"id": "BIO201", "code": "BIO 201", "title": "Molecular Biology & Recombinant DNA", "credits": 3.0, "department": "Biotechnology", "description": "DNA replication, transcription, translation, PCR, restriction enzymes, and plasmid vectors.", "prerequisites": ["BIO101", "BIO102"]},
+        {"id": "BIO301", "code": "BIO 301", "title": "Bioprocess Engineering & Fermentation", "credits": 3.0, "department": "Biotechnology", "description": "Bioreactor configuration, microbial growth kinetics, aeration, and downstream purification.", "prerequisites": ["BIO201"]},
+        {"id": "BIO302", "code": "BIO 302", "title": "Bioinformatics & Genomic Data", "credits": 3.0, "department": "Biotechnology", "description": "Sequence alignment (BLAST), phylogenetic trees, Python BioPython, and protein modeling.", "prerequisites": ["BIO201"]},
+        {"id": "BIO401", "code": "BIO 401", "title": "Genetic Engineering & CRISPR", "credits": 3.0, "department": "Biotechnology", "description": "CRISPR-Cas9 gene editing, transgenic organisms, gene therapy, and bioethics regulations.", "prerequisites": ["BIO201"]},
+        {"id": "BIO499", "code": "BIO 499", "title": "Biotechnology Capstone Project", "credits": 4.0, "department": "Biotechnology", "description": "Independent experimental or computational biotech research project.", "prerequisites": ["BIO301", "BIO401"]}
+      ]
+    },
+    {
+      "id": "ENV",
+      "name": "Environmental Engineering & Sustainability",
+      "department": "Environmental Engineering",
+      "degree": "Bachelor of Science",
+      "description": "Studies air pollution control, water & wastewater purification, solid waste management, and climate change solutions.",
+      "courses": [
+        {"id": "ENV101", "code": "ENV 101", "title": "Principles of Environmental Science", "credits": 3.0, "department": "Environmental Engineering", "description": "Ecological systems, biogeochemical cycles, anthropogenic impacts, and sustainability.", "prerequisites": []},
+        {"id": "ENV201", "code": "ENV 201", "title": "Water Quality & Wastewater Treatment", "credits": 3.0, "department": "Environmental Engineering", "description": "Coagulation, flocculation, activated sludge processes, biological nutrient removal.", "prerequisites": ["ENV101"]},
+        {"id": "ENV202", "code": "ENV 202", "title": "Air Pollution Engineering & Control", "credits": 3.0, "department": "Environmental Engineering", "description": "Atmospheric dispersion modeling, particulate cyclones, scrubbers, and greenhouse gas metrics.", "prerequisites": ["ENV101"]},
+        {"id": "ENV301", "code": "ENV 301", "title": "Solid & Hazardous Waste Management", "credits": 3.0, "department": "Environmental Engineering", "description": "Landfill engineering, leachate containment, waste-to-energy, and hazardous remediation.", "prerequisites": ["ENV201"]},
+        {"id": "ENV401", "code": "ENV 401", "title": "Renewable Energy & Carbon Capture", "credits": 3.0, "department": "Environmental Engineering", "description": "Solar PV, wind turbine systems, biomass energy, carbon sequestration, and LCA.", "prerequisites": ["ENV202"]},
+        {"id": "ENV499", "code": "ENV 499", "title": "Environmental Engineering Capstone", "credits": 4.0, "department": "Environmental Engineering", "description": "Environmental impact assessment and treatment plant design report.", "prerequisites": ["ENV201", "ENV301"]}
+      ]
+    },
+    {
+      "id": "ECON",
+      "name": "Economics & Econometrics",
+      "department": "Economics",
+      "degree": "Bachelor of Science",
+      "description": "Explores microeconomic theory, macroeconomic policy, quantitative econometrics, and game theory.",
+      "courses": [
+        {"id": "ECON101E", "code": "ECON 101", "title": "Principles of Microeconomics", "credits": 3.0, "department": "Economics", "description": "Supply, demand, market equilibrium, consumer utility, and monopoly behavior.", "prerequisites": []},
+        {"id": "ECON102E", "code": "ECON 102", "title": "Principles of Macroeconomics", "credits": 3.0, "department": "Economics", "description": "National income accounting, inflation, unemployment, fiscal and monetary policy.", "prerequisites": ["ECON101E"]},
+        {"id": "ECON201E", "code": "ECON 201", "title": "Intermediate Microeconomics", "credits": 3.0, "department": "Economics", "description": "General equilibrium, welfare theorems, oligopoly models, and game theory.", "prerequisites": ["ECON101E"]},
+        {"id": "ECON202E", "code": "ECON 202", "title": "Intermediate Macroeconomics", "credits": 3.0, "department": "Economics", "description": "Solow growth model, IS-LM framework, AD-AS, and rational expectations.", "prerequisites": ["ECON102E"]},
+        {"id": "ECON301E", "code": "ECON 301", "title": "Econometrics & Regression Analysis", "credits": 3.0, "department": "Economics", "description": "Ordinary least squares (OLS), hypothesis testing, heteroskedasticity, and instrumental variables.", "prerequisites": ["ECON201E"]},
+        {"id": "ECON401E", "code": "ECON 401", "title": "International Trade & Finance", "credits": 3.0, "department": "Economics", "description": "Ricardian and Heckscher-Ohlin trade models, tariffs, exchange rate dynamics.", "prerequisites": ["ECON201E", "ECON202E"]},
+        {"id": "ECON499E", "code": "ECON 499", "title": "Economics Senior Thesis", "credits": 4.0, "department": "Economics", "description": "Empirical research thesis utilizing econometric models on real-world datasets.", "prerequisites": ["ECON301E"]}
+      ]
+    },
+    {
+      "id": "ECE",
+      "name": "Electronics & Computer Engineering",
+      "department": "ECE",
+      "degree": "Bachelor of Science",
+      "description": "Integrates digital circuit design, computer hardware architecture, FPGA development, and wireless communications.",
+      "courses": [
+        {"id": "ECE101", "code": "ECE 101", "title": "Electric Circuits & Networks", "credits": 3.0, "department": "ECE", "description": "Kirchhoff laws, nodal analysis, AC steady-state phasors, and power factor correction.", "prerequisites": []},
+        {"id": "ECE102", "code": "ECE 102", "title": "Digital Electronics & Verilog", "credits": 3.0, "department": "ECE", "description": "Boolean algebra, gate-level design, Verilog HDL, FPGAs, and sequential systems.", "prerequisites": ["ECE101"]},
+        {"id": "ECE201", "code": "ECE 201", "title": "Analog Integrated Circuits", "credits": 3.0, "department": "ECE", "description": "MOSFET small-signal amplifiers, current mirrors, differential pairs, and active loads.", "prerequisites": ["ECE101"]},
+        {"id": "ECE301", "code": "ECE 301", "title": "Computer Architecture & Pipelining", "credits": 3.0, "department": "ECE", "description": "RISC-V/MIPS architecture, hazard handling, branch prediction, and cache coherence.", "prerequisites": ["ECE102"]},
+        {"id": "ECE302", "code": "ECE 302", "title": "Embedded Microcontroller Systems", "credits": 3.0, "department": "ECE", "description": "ARM Cortex-M programming, RTOS tasks, timers, DMA, and serial communication (UART, SPI, I2C).", "prerequisites": ["ECE301"]},
+        {"id": "ECE401", "code": "ECE 401", "title": "VLSI Circuit Design", "credits": 3.0, "department": "ECE", "description": "CMOS layout rules, parasitic extraction, static timing analysis, and ASIC design flows.", "prerequisites": ["ECE201", "ECE102"]},
+        {"id": "ECE499", "code": "ECE 499", "title": "ECE Senior Capstone Design", "credits": 4.0, "department": "ECE", "description": "Comprehensive FPGA or embedded hardware design project.", "prerequisites": ["ECE302", "ECE401"]}
+      ]
+    }
+  ],
+  "courses": [
+    {"code": "CS 101", "title": "Introduction to Programming", "credits": 3.0, "department": "Computer Science", "description": "Fundamentals of programming logic, variables, control flow, and functions using Java.", "prerequisites": []},
+    {"code": "CS 102", "title": "Object-Oriented Programming", "credits": 3.0, "department": "Computer Science", "description": "Classes, objects, inheritance, polymorphism, encapsulation, and abstraction in Java.", "prerequisites": ["CS 101"]},
+    {"code": "MATH 101", "title": "Discrete Mathematics", "credits": 3.0, "department": "Mathematics", "description": "Sets, logic, relations, functions, graph theory, and combinatorics.", "prerequisites": []},
+    {"code": "MATH 102", "title": "Calculus I", "credits": 4.0, "department": "Mathematics", "description": "Limits, derivatives, integrals, and the fundamental theorem of calculus.", "prerequisites": []},
+    {"code": "CS 201", "title": "Data Structures", "credits": 3.0, "department": "Computer Science", "description": "Arrays, linked lists, stacks, queues, trees, heaps, and hash tables.", "prerequisites": ["CS 102", "MATH 101"]},
+    {"code": "CS 202", "title": "Algorithm Design & Analysis", "credits": 3.0, "department": "Computer Science", "description": "Time and space complexity, sorting, searching, dynamic programming, and greedy algorithms.", "prerequisites": ["CS 201", "MATH 101"]},
+    {"code": "MATH 201", "title": "Linear Algebra", "credits": 3.0, "department": "Mathematics", "description": "Vectors, matrices, linear transformations, eigenvalues, and eigenvectors.", "prerequisites": ["MATH 101"]},
+    {"code": "CS 301", "title": "Database Management Systems", "credits": 3.0, "department": "Computer Science", "description": "Relational model, SQL, normalization, transactions, indexing, and query optimization.", "prerequisites": ["CS 201"]},
+    {"code": "CS 302", "title": "Operating Systems", "credits": 3.0, "department": "Computer Science", "description": "Process management, memory management, file systems, concurrency, and synchronization.", "prerequisites": ["CS 201", "CS 202"]},
+    {"code": "CS 303", "title": "Computer Networks", "credits": 3.0, "department": "Computer Science", "description": "OSI model, TCP/IP, HTTP, DNS, routing algorithms, and network security fundamentals.", "prerequisites": ["CS 202"]},
+    {"code": "CS 304", "title": "Software Engineering", "credits": 3.0, "department": "Computer Science", "description": "SDLC, requirements engineering, UML, design patterns, testing, and agile methodologies.", "prerequisites": ["CS 202"]},
+    {"code": "CS 401", "title": "Machine Learning", "credits": 3.0, "department": "Computer Science", "description": "Supervised and unsupervised learning, regression, classification, neural networks, and model evaluation.", "prerequisites": ["CS 202", "MATH 201"]},
+    {"code": "CS 402", "title": "Distributed Systems", "credits": 3.0, "department": "Computer Science", "description": "CAP theorem, consensus protocols, distributed transactions, microservices, and fault tolerance.", "prerequisites": ["CS 302", "CS 303"]},
+    {"code": "CS 403", "title": "Compiler Design", "credits": 3.0, "department": "Computer Science", "description": "Lexical analysis, parsing, semantic analysis, intermediate code generation, and optimization.", "prerequisites": ["CS 302", "MATH 101"]},
+    {"code": "CS 404", "title": "Information Security", "credits": 3.0, "department": "Computer Science", "description": "Cryptography, authentication, network security, web security, and ethical hacking basics.", "prerequisites": ["CS 303"]},
+    {"code": "CS 499", "title": "Senior Project & Capstone", "credits": 3.0, "department": "Computer Science", "description": "Independent research or industry-grade project integrating skills from the full CS curriculum.", "prerequisites": ["CS 401", "CS 402"]}
+  ]
+}
